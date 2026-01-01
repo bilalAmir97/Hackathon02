@@ -1,6 +1,6 @@
 # Evolution of Todo - Advanced Phase I
 
-A feature-rich, visually stunning in-memory Python console todo list application using the `rich` library.
+A feature-rich, visually stunning in-memory Python console todo list application using the `rich` library. This project has been reorganized to isolate Phase I assets.
 
 ## Features
 
@@ -33,15 +33,27 @@ A feature-rich, visually stunning in-memory Python console todo list application
 - rich library (for UI)
 - pytest (for testing)
 
-## Installation
+## Installation & Setup
 
+1. **Clone the repository**:
 ```bash
-git clone https://github.com/bilalAmir97/Hackathon02-Phase-I.git
-cd Hackathon02-Phase-I
+git clone https://github.com/bilalAmir97/Hackathon02.git
+cd Hackathon02
+```
+
+2. **Navigate to Phase I**:
+```bash
+cd "Phase I"
+```
+
+3. **Install Dependencies**:
+```bash
 pip install -r requirements.txt
 ```
 
 ## Usage
+
+All commands should be run from within the `Phase I/` directory.
 
 ### Run the Advanced Rich Console App
 ```bash
@@ -53,52 +65,28 @@ python -m src.cli.app_controller
 python todo_app/todo_app.py
 ```
 
-## Project Structure
+## Project Structure (Inside Phase I/)
 
 ```
-hackathon-02/
+Phase I/
 ├── src/                          # Advanced Rich Console App
-│   ├── __init__.py
 │   ├── models/
-│   │   ├── __init__.py
 │   │   └── task.py              # Enhanced Task model
 │   ├── services/
-│   │   ├── __init__.py
 │   │   └── task_manager.py      # TaskManager with search/filter/sort
 │   ├── cli/
-│   │   ├── __init__.py
 │   │   ├── cli_interface.py     # Rich UI interface
 │   │   └── app_controller.py    # Main application controller
 │   └── lib/
-│       ├── __init__.py
 │       └── utils.py             # Utility functions
 ├── todo_app/                     # Basic Console App (Original)
-│   ├── __init__.py
 │   └── todo_app.py
 ├── tests/
-│   ├── __init__.py
 │   └── test_todo_app.py
-├── specs/
-│   ├── 001-todo/                # Basic Phase I specs
-│   └── 001-rich-todo-app/       # Advanced Phase I specs
-├── history/
-│   └── prompts/                 # Prompt History Records
 ├── .gitignore
-├── README.md
+├── README.md                     # This file
 └── requirements.txt
 ```
-
-## Menu Options
-
-1. **Add Task** - Create a new task with priority, tags, due date, and recurring options
-2. **View Task List** - Display all tasks in a rich table format
-3. **Update Task** - Modify task attributes
-4. **Delete Task** - Remove a task
-5. **Mark Task Complete** - Complete a task (creates new instance for recurring tasks)
-6. **Mark Task Incomplete** - Reopen a completed task
-7. **Search Tasks** - Find tasks by keyword
-8. **Filter Tasks** - Filter by status, priority, or tag
-9. **Exit** - Close the application
 
 ## Testing
 
@@ -106,11 +94,12 @@ hackathon-02/
 python -m pytest tests/
 ```
 
-## Specification Documents
+## Specification Documents (Relative to repository root)
 
-- [Feature Specification](./specs/001-rich-todo-app/spec.md)
-- [Implementation Plan](./specs/001-rich-todo-app/plan.md)
-- [Task List](./specs/001-rich-todo-app/tasks.md)
+- [Feature Specification](../specs/001-rich-todo-app/spec.md)
+- [Implementation Plan](../specs/001-rich-todo-app/plan.md)
+- [Task List](../specs/001-rich-todo-app/tasks.md)
+- [Reorganization Spec](../specs/002-reorganize-phase-1/spec.md)
 
 ## License
 
