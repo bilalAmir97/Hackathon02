@@ -208,3 +208,10 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- Python 3.9+ + rich (UI), pytest (Testing) (002-reorganize-phase-1)
+- In-memory (Application state) (002-reorganize-phase-1)
+
+## Recent Changes
+- 002-reorganize-phase-1: Added Python 3.9+ + rich (UI), pytest (Testing)
