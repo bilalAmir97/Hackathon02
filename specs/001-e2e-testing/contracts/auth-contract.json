@@ -1,0 +1,295 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Authentication Contract for Phase 2",
+  "description": "Defines expected authentication flow behavior and JWT token structure",
+  "version": "1.0.0",
+  "contracts": {
+    "signup": {
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "request": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "type": "object",
+          "required": ["email", "password"],
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "User email address"
+            },
+            "password": {
+              "type": "string",
+              "minLength": 8,
+              "description": "User password (plaintext, will be hashed)"
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "User created successfully",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "type": "object",
+            "required": ["user_id", "email", "token", "created_at"],
+            "properties": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique user identifier"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "token": {
+                "type": "string",
+                "description": "JWT authentication token"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation error",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "string",
+                "description": "Error message"
+              }
+            }
+          }
+        },
+        "409": {
+          "description": "Email already registered",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "string",
+                "description": "Error message"
+              }
+            }
+          }
+        }
+      }
+    },
+    "signin": {
+      "endpoint": "/api/auth/signin",
+      "method": "POST",
+      "request": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "type": "object",
+          "required": ["email", "password"],
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "password": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Authentication successful",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "type": "object",
+            "required": ["user_id", "email", "token"],
+            "properties": {
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "token": {
+                "type": "string",
+                "description": "JWT authentication token"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Invalid credentials",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "string",
+                "description": "Error message"
+              }
+            }
+          }
+        }
+      }
+    },
+    "logout": {
+      "endpoint": "/api/auth/logout",
+      "method": "POST",
+      "request": {
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer {jwt_token}"
+        }
+      },
+      "responses": {
+        "204": {
+          "description": "Logout successful (no content)"
+        },
+        "401": {
+          "description": "Unauthorized (missing or invalid token)",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "jwt_token_structure": {
+      "description": "Expected JWT token structure",
+      "header": {
+        "type": "object",
+        "required": ["alg", "typ"],
+        "properties": {
+          "alg": {
+            "type": "string",
+            "enum": ["HS256"],
+            "description": "Signing algorithm"
+          },
+          "typ": {
+            "type": "string",
+            "enum": ["JWT"],
+            "description": "Token type"
+          }
+        }
+      },
+      "payload": {
+        "type": "object",
+        "required": ["user_id", "email", "exp"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User identifier"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email"
+          },
+          "exp": {
+            "type": "integer",
+            "description": "Expiration timestamp (Unix epoch)"
+          },
+          "iat": {
+            "type": "integer",
+            "description": "Issued at timestamp (Unix epoch)"
+          }
+        }
+      },
+      "signature": {
+        "description": "HMAC SHA256 signature using BETTER_AUTH_SECRET"
+      }
+    },
+    "password_hashing": {
+      "description": "Password storage requirements",
+      "algorithm": "bcrypt",
+      "cost_factor": 12,
+      "format": "$2b$12$[salt][hash]",
+      "validation": {
+        "plaintext_forbidden": true,
+        "must_verify_with_bcrypt": true
+      }
+    },
+    "authorization_header": {
+      "description": "Required Authorization header for protected endpoints",
+      "format": "Bearer {jwt_token}",
+      "validation": {
+        "token_must_be_valid": true,
+        "token_must_not_be_expired": true,
+        "signature_must_verify": true
+      }
+    }
+  },
+  "test_scenarios": {
+    "signup_success": {
+      "description": "User signs up with valid credentials",
+      "steps": [
+        "POST /api/auth/signup with valid email and password",
+        "Expect 201 Created",
+        "Expect response contains user_id, email, token, created_at",
+        "Expect JWT token is valid structure",
+        "Expect password is hashed in database (bcrypt format)"
+      ]
+    },
+    "signin_success": {
+      "description": "User signs in with correct credentials",
+      "steps": [
+        "POST /api/auth/signin with registered email and password",
+        "Expect 200 OK",
+        "Expect response contains user_id, email, token",
+        "Expect JWT token is valid and not expired"
+      ]
+    },
+    "signin_failure": {
+      "description": "User signs in with incorrect credentials",
+      "steps": [
+        "POST /api/auth/signin with wrong password",
+        "Expect 401 Unauthorized",
+        "Expect error message in response"
+      ]
+    },
+    "protected_route_with_token": {
+      "description": "Access protected route with valid token",
+      "steps": [
+        "GET /api/todos with Authorization: Bearer {valid_token}",
+        "Expect 200 OK",
+        "Expect user's todos returned"
+      ]
+    },
+    "protected_route_without_token": {
+      "description": "Access protected route without token",
+      "steps": [
+        "GET /api/todos without Authorization header",
+        "Expect 401 Unauthorized"
+      ]
+    },
+    "logout_success": {
+      "description": "User logs out successfully",
+      "steps": [
+        "POST /api/auth/logout with valid token",
+        "Expect 204 No Content",
+        "Subsequent requests with same token should fail with 401"
+      ]
+    }
+  }
+}
