@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://api.example.com/schemas/pagination.json",
+  "title": "Paginated Response",
+  "description": "Paginated response with offset/limit and navigation metadata",
+  "type": "object",
+  "required": ["items", "total", "offset", "limit", "has_next", "has_previous"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "Array of items for the current page",
+      "items": {
+        "type": "object"
+      }
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of items across all pages",
+      "examples": [150]
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of items skipped (starting position)",
+      "examples": [0, 20, 40]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "description": "Maximum number of items per page",
+      "examples": [20]
+    },
+    "has_next": {
+      "type": "boolean",
+      "description": "Whether there are more items after this page",
+      "examples": [true, false]
+    },
+    "has_previous": {
+      "type": "boolean",
+      "description": "Whether there are items before this page",
+      "examples": [false, true]
+    }
+  },
+  "additionalProperties": false
+}

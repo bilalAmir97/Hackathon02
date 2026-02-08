@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RFC 7807 Problem Details Error Schemas",
+  "description": "Standard error response schemas following RFC 7807 Problem Details for HTTP APIs",
+  "definitions": {
+    "ProblemDetail": {
+      "type": "object",
+      "required": ["type", "title", "status", "detail", "instance"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI reference identifying the problem type"
+        },
+        "title": {
+          "type": "string",
+          "description": "Short, human-readable summary of the problem"
+        },
+        "status": {
+          "type": "integer",
+          "description": "HTTP status code"
+        },
+        "detail": {
+          "type": "string",
+          "description": "Human-readable explanation specific to this occurrence"
+        },
+        "instance": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI reference identifying the specific occurrence"
+        }
+      }
+    },
+    "BadRequest": {
+      "allOf": [
+        { "$ref": "#/definitions/ProblemDetail" },
+        {
+          "properties": {
+            "type": { "const": "https://api.example.com/errors/bad-request" },
+            "status": { "const": 400 }
+          }
+        }
+      ],
+      "examples": [
+        {
+          "type": "https://api.example.com/errors/bad-request",
+          "title": "Bad Request",
+          "status": 400,
+          "detail": "Invalid UUID format for user_id parameter",
+          "instance": "/users/invalid-uuid/tasks"
+        }
+      ]
+    },
+    "NotFound": {
+      "allOf": [
+        { "$ref": "#/definitions/ProblemDetail" },
+        {
+          "properties": {
+            "type": { "const": "https://api.example.com/errors/not-found" },
+            "status": { "const": 404 }
+          }
+        }
+      ],
+      "examples": [
+        {
+          "type": "https://api.example.com/errors/not-found",
+          "title": "Task Not Found",
+          "status": 404,
+          "detail": "Task with ID 123e4567-e89b-12d3-a456-426614174000 does not exist or does not belong to this user",
+          "instance": "/users/550e8400-e29b-41d4-a716-446655440000/tasks/123e4567-e89b-12d3-a456-426614174000"
+        }
+      ]
+    },
+    "UnprocessableEntity": {
+      "allOf": [
+        { "$ref": "#/definitions/ProblemDetail" },
+        {
+          "properties": {
+            "type": { "const": "https://api.example.com/errors/validation-error" },
+            "status": { "const": 422 }
+          }
+        }
+      ],
+      "examples": [
+        {
+          "type": "https://api.example.com/errors/validation-error",
+          "title": "Validation Error",
+          "status": 422,
+          "detail": "Title field is required and cannot be empty",
+          "instance": "/users/550e8400-e29b-41d4-a716-446655440000/tasks"
+        }
+      ]
+    },
+    "InternalServerError": {
+      "allOf": [
+        { "$ref": "#/definitions/ProblemDetail" },
+        {
+          "properties": {
+            "type": { "const": "https://api.example.com/errors/internal-error" },
+            "status": { "const": 500 }
+          }
+        }
+      ],
+      "examples": [
+        {
+          "type": "https://api.example.com/errors/internal-error",
+          "title": "Internal Server Error",
+          "status": 500,
+          "detail": "An unexpected error occurred while processing your request",
+          "instance": "/users/550e8400-e29b-41d4-a716-446655440000/tasks"
+        }
+      ]
+    },
+    "ServiceUnavailable": {
+      "allOf": [
+        { "$ref": "#/definitions/ProblemDetail" },
+        {
+          "properties": {
+            "type": { "const": "https://api.example.com/errors/service-unavailable" },
+            "status": { "const": 503 }
+          }
+        }
+      ],
+      "examples": [
+        {
+          "type": "https://api.example.com/errors/service-unavailable",
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "Database connection unavailable. Please try again later.",
+          "instance": "/users/550e8400-e29b-41d4-a716-446655440000/tasks"
+        }
+      ]
+    }
+  }
+}

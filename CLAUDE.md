@@ -212,6 +212,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.9+ + rich (UI), pytest (Testing) (002-reorganize-phase-1)
 - In-memory (Application state) (002-reorganize-phase-1)
+- TypeScript/JavaScript, React 19.2.1, Next.js 16.0.10 + Tailwind CSS, GSAP, Framer Motion (008-dashboard-ui-redesign) [Frontend UI only]
+- Better Auth, Neon Serverless PostgreSQL (008-dashboard-ui-redesign) [Already implemented - no changes needed]
 
 ## Recent Changes
 - 002-reorganize-phase-1: Added Python 3.9+ + rich (UI), pytest (Testing)

@@ -1,0 +1,204 @@
+openapi: 3.0.0
+info:
+  title: Dashboard UI API
+  description: API contracts for the premium futuristic dashboard UI (frontend-only UI changes - no backend API modifications)
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://yourdomain.com/api
+    description: Production server
+
+paths:
+  /{user_id}/dashboard/preferences:
+    get:
+      summary: Get user dashboard preferences
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The user's unique identifier
+      responses:
+        '200':
+          description: User dashboard preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardPreferences'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+
+    put:
+      summary: Update user dashboard preferences
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The user's unique identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardPreferences'
+      responses:
+        '200':
+          description: Updated dashboard preferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  updatedPreferences:
+                    $ref: '#/components/schemas/DashboardPreferences'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+
+  /{user_id}/dashboard/stats:
+    get:
+      summary: Get dashboard statistics
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The user's unique identifier
+      responses:
+        '200':
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    DashboardPreferences:
+      type: object
+      properties:
+        sidebarCollapsed:
+          type: boolean
+          description: Whether the sidebar is collapsed
+          default: false
+        theme:
+          type: string
+          enum: [dark, light, futuristic-dark]
+          description: The current theme
+          default: futuristic-dark
+        taskViewMode:
+          type: string
+          enum: [grid, list]
+          description: How tasks are displayed
+          default: grid
+        lastVisited:
+          type: string
+          format: date-time
+          description: Timestamp of last visit
+        customizationSettings:
+          $ref: '#/components/schemas/CustomizationSettings'
+
+    CustomizationSettings:
+      type: object
+      properties:
+        glassIntensity:
+          type: number
+          minimum: 0.1
+          maximum: 0.8
+          description: Intensity of glassmorphism effect
+          default: 0.4
+        animationSpeed:
+          type: string
+          enum: [slow, normal, fast]
+          description: Speed of animations
+          default: normal
+        scanlineEnabled:
+          type: boolean
+          description: Whether scanline animation is enabled
+          default: true
+
+    DashboardStats:
+      type: object
+      properties:
+        totalTasks:
+          type: integer
+          description: Total number of tasks
+        completedTasks:
+          type: integer
+          description: Number of completed tasks
+        pendingTasks:
+          type: integer
+          description: Number of pending tasks
+        tasksByPriority:
+          type: object
+          properties:
+            high:
+              type: integer
+            medium:
+              type: integer
+            low:
+              type: integer
+        tasksByCategory:
+          type: object
+          properties:
+            work:
+              type: integer
+            personal:
+              type: integer
+        completionRate:
+          type: number
+          description: Percentage of tasks completed
+        averageCompletionTime:
+          type: string
+          description: Average time to complete tasks
+
+  responses:
+    UnauthorizedError:
+      description: Unauthorized - Invalid or expired JWT token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Unauthorized"
+              message:
+                type: string
+                example: "Invalid or expired JWT token"
+
+    BadRequestError:
+      description: Bad Request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Validation Error"
+              message:
+                type: string
+                example: "Invalid preference values provided"

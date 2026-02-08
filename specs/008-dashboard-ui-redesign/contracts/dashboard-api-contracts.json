@@ -1,0 +1,323 @@
+# API Contracts: Dashboard UI Rebuild — Premium Futuristic Redesign
+
+**Feature**: 008-dashboard-ui-redesign | **Date**: 2026-01-24
+
+## Overview
+
+This document defines the API contracts for the dashboard UI interactions. The dashboard maintains all existing backend API contracts while introducing new UI-specific interfaces for enhanced functionality.
+
+## Existing API Contracts (Preserved)
+
+All existing API contracts remain unchanged as per the feature requirements:
+
+### Task Management APIs
+```
+GET    /api/{user_id}/tasks          - List all tasks
+POST   /api/{user_id}/tasks          - Create a new task
+GET    /api/{user_id}/tasks/{id}     - Get task details
+PUT    /api/{user_id}/tasks/{id}     - Update a task
+DELETE /api/{user_id}/tasks/{id}     - Delete a task
+PATCH  /api/{user_id}/tasks/{id}/complete - Toggle completion
+```
+
+### Authentication APIs
+```
+POST   /api/auth/login              - User login
+POST   /api/auth/logout             - User logout
+GET    /api/auth/me                 - Get current user
+```
+
+## UI-Specific Contracts
+
+### Dashboard State Management
+
+#### GET /api/{user_id}/dashboard/preferences
+Get user-specific dashboard preferences and UI state
+
+**Request**:
+```json
+{
+  "headers": {
+    "Authorization": "Bearer {jwt_token}",
+    "Content-Type": "application/json"
+  }
+}
+```
+
+**Response (Success - 200)**:
+```json
+{
+  "sidebarCollapsed": false,
+  "theme": "futuristic-dark",
+  "taskViewMode": "grid", // "grid" | "list"
+  "lastVisited": "2026-01-24T10:30:00Z",
+  "customizationSettings": {
+    "glassIntensity": 0.4,
+    "animationSpeed": "normal", // "slow" | "normal" | "fast"
+    "scanlineEnabled": true
+  }
+}
+```
+
+**Response (Unauthorized - 401)**:
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired JWT token"
+}
+```
+
+#### PUT /api/{user_id}/dashboard/preferences
+Update user-specific dashboard preferences
+
+**Request**:
+```json
+{
+  "headers": {
+    "Authorization": "Bearer {jwt_token}",
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "sidebarCollapsed": true,
+    "theme": "futuristic-dark",
+    "taskViewMode": "grid",
+    "customizationSettings": {
+      "glassIntensity": 0.6,
+      "animationSpeed": "slow",
+      "scanlineEnabled": false
+    }
+  }
+}
+```
+
+**Response (Success - 200)**:
+```json
+{
+  "success": true,
+  "updatedPreferences": {
+    "sidebarCollapsed": true,
+    "theme": "futuristic-dark",
+    "taskViewMode": "grid",
+    "customizationSettings": {
+      "glassIntensity": 0.6,
+      "animationSpeed": "slow",
+      "scanlineEnabled": false
+    }
+  }
+}
+```
+
+**Response (Bad Request - 400)**:
+```json
+{
+  "error": "Validation Error",
+  "message": "Invalid preference values provided"
+}
+```
+
+**Response (Unauthorized - 401)**:
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired JWT token"
+}
+```
+
+### Task Statistics
+
+#### GET /api/{user_id}/dashboard/stats
+Get dashboard statistics for display in the UI
+
+**Request**:
+```json
+{
+  "headers": {
+    "Authorization": "Bearer {jwt_token}",
+    "Content-Type": "application/json"
+  }
+}
+```
+
+**Response (Success - 200)**:
+```json
+{
+  "totalTasks": 15,
+  "completedTasks": 8,
+  "pendingTasks": 7,
+  "tasksByPriority": {
+    "high": 3,
+    "medium": 4,
+    "low": 0
+  },
+  "tasksByCategory": {
+    "work": 10,
+    "personal": 5
+  },
+  "completionRate": 53.3,
+  "averageCompletionTime": "2.5 days"
+}
+```
+
+**Response (Unauthorized - 401)**:
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired JWT token"
+}
+```
+
+## Frontend Component Contracts
+
+### Dashboard Layout Interface
+```typescript
+interface DashboardLayoutProps {
+  children: ReactNode;
+  sidebarCollapsed?: boolean;
+  theme?: 'dark' | 'light' | 'futuristic-dark';
+}
+
+interface DashboardLayoutState {
+  sidebarCollapsed: boolean;
+  currentView: 'tasks' | 'calendar' | 'analytics';
+  theme: 'dark' | 'light' | 'futuristic-dark';
+}
+```
+
+### Glassmorphic Component Interface
+```typescript
+interface GlassmorphicProps {
+  children: ReactNode;
+  blurIntensity?: number; // 0-20px
+  opacity?: number; // 0.1-0.8
+  gradientStart?: string;
+  gradientEnd?: string;
+  borderOpacity?: number; // 0.1-0.3
+  className?: string;
+}
+
+interface GlassmorphicState {
+  isVisible: boolean;
+  animationPhase: 'idle' | 'enter' | 'hover' | 'exit';
+}
+```
+
+### Task Card Interface
+```typescript
+interface TaskCardProps {
+  task: Task;
+  onToggleComplete: (taskId: string) => void;
+  onEdit: (task: Task) => void;
+  onDelete: (taskId: string) => void;
+  glassProperties?: GlassmorphicProps;
+  animationState?: 'idle' | 'hover' | 'complete' | 'delete';
+}
+
+interface TaskCardState {
+  isHovered: boolean;
+  isAnimating: boolean;
+  animationProgress: number;
+}
+```
+
+### Navigation Interface
+```typescript
+interface NavigationItem {
+  id: string;
+  icon: string;
+  label: string;
+  href: string;
+  active: boolean;
+  glowEffect?: boolean;
+}
+
+interface SidebarProps {
+  navigationItems: NavigationItem[];
+  collapsed?: boolean;
+  onCollapseToggle: () => void;
+}
+
+interface SidebarState {
+  collapsed: boolean;
+  activeItem: string;
+  hoveredItem: string | null;
+}
+```
+
+## Animation Contracts
+
+### GSAP Timeline Interface
+```typescript
+interface DashboardTimelineConfig {
+  entranceDuration: number;
+  staggerDelay: number;
+  easeFunction: string;
+  elementSelector: string;
+}
+
+interface AnimationState {
+  currentScene: string;
+  isPlaying: boolean;
+  progress: number;
+  speed: number;
+}
+```
+
+## Error Handling Contracts
+
+### Standard Error Response
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": "Additional error details if applicable",
+    "timestamp": "ISO 8601 timestamp",
+    "requestId": "Unique request identifier"
+  }
+}
+```
+
+### Common Error Codes
+- `AUTH_001`: Invalid JWT token
+- `AUTH_002`: Expired JWT token
+- `PERM_001`: Insufficient permissions
+- `VALIDATION_001`: Request validation failed
+- `RESOURCE_001`: Resource not found
+- `SERVER_001`: Internal server error
+
+## Performance Contracts
+
+### Response Time SLAs
+- Dashboard stats: <100ms (p95)
+- Task operations: <200ms (p95)
+- Preference updates: <50ms (p95)
+
+### Animation Performance
+- All animations: 60fps minimum on mid-range devices
+- Entrance animations: Complete within 2 seconds
+- Interactive animations: Respond within 16ms
+
+## Security Contracts
+
+### Authentication Requirements
+- All dashboard endpoints require valid JWT token
+- Token must include user_id claim
+- Requests without valid token return 401 Unauthorized
+
+### Authorization Requirements
+- Users can only access their own dashboard data
+- All API requests validated against user_id in JWT
+- Cross-user data access prevented by backend
+
+## Compatibility Contracts
+
+### Browser Support
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+### Responsive Breakpoints
+- Mobile: <640px
+- Tablet: 640px - 1024px
+- Desktop: >1024px

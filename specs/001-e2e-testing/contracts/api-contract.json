@@ -1,0 +1,547 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "REST API Contract for Phase 2 Todo Application",
+  "description": "Defines expected behavior for all Todo CRUD endpoints",
+  "version": "1.0.0",
+  "base_url": "/api",
+  "authentication": {
+    "type": "Bearer JWT",
+    "header": "Authorization: Bearer {jwt_token}",
+    "required_for_all_endpoints": true
+  },
+  "endpoints": {
+    "list_todos": {
+      "path": "/todos",
+      "method": "GET",
+      "description": "List all todos for authenticated user",
+      "authentication_required": true,
+      "request": {
+        "headers": {
+          "Authorization": {
+            "type": "string",
+            "required": true,
+            "format": "Bearer {jwt_token}"
+          }
+        },
+        "query_parameters": {
+          "status": {
+            "type": "string",
+            "enum": ["all", "pending", "completed"],
+            "default": "all",
+            "description": "Filter todos by completion status"
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "List of todos returned successfully",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "title", "completed", "user_id", "created_at", "updated_at"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 1000,
+                  "nullable": true
+                },
+                "completed": {
+                  "type": "boolean"
+                },
+                "user_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized - missing or invalid token",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "create_todo": {
+      "path": "/todos",
+      "method": "POST",
+      "description": "Create a new todo for authenticated user",
+      "authentication_required": true,
+      "request": {
+        "headers": {
+          "Authorization": {
+            "type": "string",
+            "required": true
+          },
+          "Content-Type": {
+            "type": "string",
+            "required": true,
+            "enum": ["application/json"]
+          }
+        },
+        "body": {
+          "type": "object",
+          "required": ["title"],
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Todo title"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 1000,
+              "nullable": true,
+              "description": "Optional todo description"
+            },
+            "completed": {
+              "type": "boolean",
+              "default": false,
+              "description": "Completion status"
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Todo created successfully",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "type": "object",
+            "required": ["id", "title", "completed", "user_id", "created_at", "updated_at"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string",
+                "nullable": true
+              },
+              "completed": {
+                "type": "boolean"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation error",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "loc": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "get_todo": {
+      "path": "/todos/{todo_id}",
+      "method": "GET",
+      "description": "Get a specific todo by ID",
+      "authentication_required": true,
+      "request": {
+        "headers": {
+          "Authorization": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "path_parameters": {
+          "todo_id": {
+            "type": "string",
+            "format": "uuid",
+            "required": true
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Todo retrieved successfully",
+          "body": {
+            "type": "object",
+            "required": ["id", "title", "completed", "user_id", "created_at", "updated_at"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string",
+                "nullable": true
+              },
+              "completed": {
+                "type": "boolean"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized"
+        },
+        "403": {
+          "description": "Forbidden - todo belongs to another user",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "Todo not found",
+          "body": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "update_todo": {
+      "path": "/todos/{todo_id}",
+      "method": "PUT",
+      "description": "Update an existing todo",
+      "authentication_required": true,
+      "request": {
+        "headers": {
+          "Authorization": {
+            "type": "string",
+            "required": true
+          },
+          "Content-Type": {
+            "type": "string",
+            "required": true,
+            "enum": ["application/json"]
+          }
+        },
+        "path_parameters": {
+          "todo_id": {
+            "type": "string",
+            "format": "uuid",
+            "required": true
+          }
+        },
+        "body": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 1000,
+              "nullable": true
+            },
+            "completed": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Todo updated successfully",
+          "body": {
+            "type": "object",
+            "required": ["id", "title", "completed", "user_id", "created_at", "updated_at"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string",
+                "nullable": true
+              },
+              "completed": {
+                "type": "boolean"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized"
+        },
+        "403": {
+          "description": "Forbidden - todo belongs to another user"
+        },
+        "404": {
+          "description": "Todo not found"
+        },
+        "422": {
+          "description": "Validation error"
+        }
+      }
+    },
+    "delete_todo": {
+      "path": "/todos/{todo_id}",
+      "method": "DELETE",
+      "description": "Delete a todo",
+      "authentication_required": true,
+      "request": {
+        "headers": {
+          "Authorization": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "path_parameters": {
+          "todo_id": {
+            "type": "string",
+            "format": "uuid",
+            "required": true
+          }
+        }
+      },
+      "responses": {
+        "204": {
+          "description": "Todo deleted successfully (no content)"
+        },
+        "401": {
+          "description": "Unauthorized"
+        },
+        "403": {
+          "description": "Forbidden - todo belongs to another user"
+        },
+        "404": {
+          "description": "Todo not found"
+        }
+      }
+    },
+    "toggle_complete": {
+      "path": "/todos/{todo_id}/complete",
+      "method": "PATCH",
+      "description": "Toggle todo completion status",
+      "authentication_required": true,
+      "request": {
+        "headers": {
+          "Authorization": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "path_parameters": {
+          "todo_id": {
+            "type": "string",
+            "format": "uuid",
+            "required": true
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Todo completion status toggled",
+          "body": {
+            "type": "object",
+            "required": ["id", "completed"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "completed": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized"
+        },
+        "403": {
+          "description": "Forbidden - todo belongs to another user"
+        },
+        "404": {
+          "description": "Todo not found"
+        }
+      }
+    }
+  },
+  "data_isolation_requirements": {
+    "description": "User data isolation must be enforced at API level",
+    "rules": [
+      "Users can only access their own todos",
+      "All queries must filter by authenticated user_id",
+      "Attempting to access another user's todo returns 403 Forbidden",
+      "User ID is extracted from JWT token, not request body"
+    ]
+  },
+  "test_scenarios": {
+    "create_todo_success": {
+      "description": "Authenticated user creates a todo",
+      "steps": [
+        "POST /api/todos with valid title and Authorization header",
+        "Expect 201 Created",
+        "Expect response contains id, title, completed=false, user_id, timestamps",
+        "Verify todo exists in database with correct user_id"
+      ]
+    },
+    "list_todos_success": {
+      "description": "Authenticated user lists their todos",
+      "steps": [
+        "GET /api/todos with Authorization header",
+        "Expect 200 OK",
+        "Expect array of todos (only user's todos)",
+        "Verify all todos have matching user_id"
+      ]
+    },
+    "update_todo_success": {
+      "description": "Authenticated user updates their todo",
+      "steps": [
+        "PUT /api/todos/{id} with updated title and Authorization header",
+        "Expect 200 OK",
+        "Expect response contains updated todo",
+        "Verify updated_at timestamp changed"
+      ]
+    },
+    "delete_todo_success": {
+      "description": "Authenticated user deletes their todo",
+      "steps": [
+        "DELETE /api/todos/{id} with Authorization header",
+        "Expect 204 No Content",
+        "Verify todo no longer exists in database"
+      ]
+    },
+    "unauthorized_access": {
+      "description": "Request without token is rejected",
+      "steps": [
+        "GET /api/todos without Authorization header",
+        "Expect 401 Unauthorized"
+      ]
+    },
+    "cross_user_access_forbidden": {
+      "description": "User cannot access another user's todo",
+      "steps": [
+        "User A creates a todo",
+        "User B attempts to GET /api/todos/{user_a_todo_id}",
+        "Expect 403 Forbidden or 404 Not Found"
+      ]
+    },
+    "validation_error": {
+      "description": "Invalid payload returns validation error",
+      "steps": [
+        "POST /api/todos with empty title",
+        "Expect 422 Unprocessable Entity",
+        "Expect error details in response"
+      ]
+    }
+  }
+}
