@@ -21,8 +21,8 @@ RUN uv sync --frozen --no-dev
 # Copy application code
 COPY . .
 
-# Expose port
-EXPOSE 8000
+# Expose port (HF Spaces uses PORT env var, default to 7860)
+EXPOSE 7860
 
-# Start command
-CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start command - use PORT env var from HF Spaces
+CMD uv run uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-7860}
