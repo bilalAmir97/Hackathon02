@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://api.example.com/schemas/task.json",
+  "title": "Task",
+  "description": "A todo task owned by a user",
+  "type": "object",
+  "required": ["id", "user_id", "title", "status", "created_at", "updated_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Task unique identifier (UUID v4)",
+      "examples": ["123e4567-e89b-12d3-a456-426614174000"]
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Owner user identifier (UUID v4)",
+      "examples": ["550e8400-e29b-41d4-a716-446655440000"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Task title (1-200 characters)",
+      "examples": ["Buy groceries", "Complete project report"]
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 2000,
+      "description": "Task description (optional, max 2000 characters)",
+      "examples": ["Milk, eggs, bread", null]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "completed"],
+      "description": "Task completion status",
+      "default": "pending"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Task creation timestamp (ISO 8601, UTC)",
+      "examples": ["2026-01-11T10:30:45.123Z"]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp (ISO 8601, UTC)",
+      "examples": ["2026-01-11T10:30:45.123Z"]
+    }
+  },
+  "additionalProperties": false
+}

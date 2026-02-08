@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://api.example.com/schemas/user.json",
+  "title": "User",
+  "description": "A user of the todo application",
+  "type": "object",
+  "required": ["id", "email", "created_at", "updated_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User unique identifier (UUID v4)",
+      "examples": ["550e8400-e29b-41d4-a716-446655440000"]
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 255,
+      "description": "User email address (unique)",
+      "examples": ["user@example.com"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Account creation timestamp (ISO 8601, UTC)",
+      "examples": ["2026-01-11T10:30:45.123Z"]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp (ISO 8601, UTC)",
+      "examples": ["2026-01-11T10:30:45.123Z"]
+    }
+  },
+  "additionalProperties": false
+}
