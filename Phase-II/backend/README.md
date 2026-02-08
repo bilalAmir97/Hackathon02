@@ -1,3 +1,13 @@
+---
+title: Hackathon02 Backend API
+emoji: 🚀
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+license: mit
+---
+
 # Backend Core & Data Layer - FastAPI Todo Application
 
 Multi-user todo application backend with FastAPI, SQLModel, and Neon PostgreSQL.
