@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Todo Server Error Codes",
+  "description": "Standardized error codes and response format for MCP tool operations",
+  "version": "1.0.0",
+  "errorFormat": {
+    "description": "All errors follow this standard format",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Machine-readable error code (uppercase snake_case)"
+            },
+            "message": {
+              "type": "string",
+              "description": "Human-readable error description"
+            },
+            "details": {
+              "type": "object",
+              "description": "Optional additional context (never exposes internal details)"
+            }
+          },
+          "required": ["code", "message", "details"]
+        }
+      },
+      "required": ["error"]
+    },
+    "example": {
+      "error": {
+        "code": "TASK_NOT_FOUND",
+        "message": "Task with ID 123e4567-e89b-12d3-a456-426614174000 not found",
+        "details": {}
+      }
+    }
+  },
+  "errorCodes": [
+    {
+      "code": "TASK_NOT_FOUND",
+      "httpStatus": 404,
+      "description": "The specified task does not exist or does not belong to the authenticated user",
+      "causes": [
+        "Task ID does not exist in database",
+        "Task belongs to a different user (ownership check failed)"
+      ],
+      "resolution": "Verify the task ID is correct and belongs to the authenticated user",
+      "example": {
+        "error": {
+          "code": "TASK_NOT_FOUND",
+          "message": "Task with ID 123e4567-e89b-12d3-a456-426614174000 not found",
+          "details": {}
+        }
+      }
+    },
+    {
+      "code": "INVALID_INPUT",
+      "httpStatus": 422,
+      "description": "Input validation failed - one or more parameters are invalid",
+      "causes": [
+        "Missing required field",
+        "Field value exceeds length limits",
+        "Invalid UUID format",
+        "Invalid enum value"
+      ],
+      "resolution": "Check the details field for specific validation errors and correct the input",
+      "example": {
+        "error": {
+          "code": "INVALID_INPUT",
+          "message": "Input validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "title",
+                "message": "Field required",
+                "type": "value_error.missing"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "code": "UNAUTHORIZED",
+      "httpStatus": 401,
+      "description": "Authentication failed - missing or invalid JWT token",
+      "causes": [
+        "Missing Authorization header",
+        "Invalid Bearer token format",
+        "Token signature verification failed",
+        "Token has expired",
+        "User not found in database",
+        "Account is disabled"
+      ],
+      "resolution": "Provide a valid JWT token in the Authorization header (Bearer scheme)",
+      "example": {
+        "error": {
+          "code": "UNAUTHORIZED",
+          "message": "Missing authentication credentials",
+          "details": {}
+        }
+      }
+    },
+    {
+      "code": "FORBIDDEN",
+      "httpStatus": 403,
+      "description": "User is authenticated but attempting to access another user's resource",
+      "causes": [
+        "Task belongs to a different user",
+        "User ID in token does not match resource owner"
+      ],
+      "resolution": "Only access your own tasks - cannot access other users' resources",
+      "example": {
+        "error": {
+          "code": "FORBIDDEN",
+          "message": "Cannot access another user's resources",
+          "details": {}
+        }
+      }
+    },
+    {
+      "code": "CONFLICT",
+      "httpStatus": 409,
+      "description": "Optimistic concurrency conflict - task was modified by another request",
+      "causes": [
+        "Task version mismatch (task was updated since it was read)",
+        "Concurrent update from another AI agent or client"
+      ],
+      "resolution": "Retry the operation with fresh task data (re-fetch the task first)",
+      "example": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "Task was modified by another request. Please retry with fresh data.",
+          "details": {
+            "current_version": 5,
+            "attempted_version": 4
+          }
+        }
+      }
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "httpStatus": 503,
+      "description": "Temporary database unavailability - service cannot connect to database",
+      "causes": [
+        "Database connection pool exhausted",
+        "Network connectivity issues",
+        "Database server temporarily unavailable"
+      ],
+      "resolution": "Retry the operation after a short delay - this is a temporary issue",
+      "example": {
+        "error": {
+          "code": "DATABASE_ERROR",
+          "message": "Database temporarily unavailable. Please try again later.",
+          "details": {}
+        }
+      }
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "httpStatus": 500,
+      "description": "Unexpected server error - something went wrong that wasn't anticipated",
+      "causes": [
+        "Unhandled exception in tool execution",
+        "Programming error",
+        "Unexpected data state"
+      ],
+      "resolution": "Report this error to system administrators - this indicates a bug",
+      "example": {
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "An unexpected error occurred",
+          "details": {}
+        }
+      }
+    }
+  ],
+  "errorHandlingGuidelines": {
+    "forAIAgents": [
+      "Parse the 'code' field for programmatic error handling",
+      "Display the 'message' field to users for human-readable context",
+      "Check 'details' field for additional context (e.g., validation errors)",
+      "Implement retry logic for DATABASE_ERROR (temporary failures)",
+      "Re-fetch data and retry for CONFLICT errors (optimistic locking)",
+      "Do not retry UNAUTHORIZED, FORBIDDEN, or INVALID_INPUT errors"
+    ],
+    "forDevelopers": [
+      "Never expose internal details (stack traces, SQL queries) in error responses",
+      "Always include the error code for machine readability",
+      "Provide actionable messages that guide users toward resolution",
+      "Use details field sparingly - only for debugging context",
+      "Log full error details server-side for debugging",
+      "Map all exceptions to one of these standard error codes"
+    ]
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Todo Server Tool Contracts",
+  "description": "Tool schemas for MCP server exposing todo task operations to AI agents",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "add_task",
+      "description": "Create a new todo task for the authenticated user. Returns the created task with generated UUID, timestamps, and initial version number.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Task title (1-200 characters, required)"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Optional task description (max 2000 characters)"
+          }
+        },
+        "required": ["title"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique task identifier (UUID v4)"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Owner user identifier (extracted from JWT token)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Task title"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Task description (null if not provided)"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "completed"],
+            "description": "Task status (always 'pending' for new tasks)"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Version number for optimistic concurrency control (always 1 for new tasks)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Task creation timestamp (ISO 8601 UTC)"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (ISO 8601 UTC)"
+          }
+        },
+        "required": ["id", "user_id", "title", "status", "version", "created_at", "updated_at"],
+        "additionalProperties": false
+      },
+      "authentication": "JWT token in Authorization header (Bearer scheme)",
+      "errors": ["INVALID_INPUT", "UNAUTHORIZED", "DATABASE_ERROR", "INTERNAL_ERROR"]
+    },
+    {
+      "name": "list_tasks",
+      "description": "Retrieve tasks for the authenticated user with optional status filtering. Returns tasks ordered by creation time (newest first).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["all", "pending", "completed"],
+            "default": "all",
+            "description": "Filter tasks by status (default: 'all')"
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "user_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": ["string", "null"]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["pending", "completed"]
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": ["id", "user_id", "title", "status", "version", "created_at", "updated_at"]
+            },
+            "description": "Array of tasks ordered by created_at descending (newest first)"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of tasks returned"
+          }
+        },
+        "required": ["tasks", "count"],
+        "additionalProperties": false
+      },
+      "authentication": "JWT token in Authorization header (Bearer scheme)",
+      "errors": ["INVALID_INPUT", "UNAUTHORIZED", "DATABASE_ERROR", "INTERNAL_ERROR"]
+    },
+    {
+      "name": "update_task",
+      "description": "Update task title and/or description for the authenticated user. Uses optimistic concurrency control to detect conflicts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the task to update (required)"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "New task title (optional, 1-200 characters)"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "New task description (optional, max 2000 characters)"
+          }
+        },
+        "required": ["task_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": ["string", "null"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "completed"]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Incremented version number after successful update"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Updated to current timestamp"
+          }
+        },
+        "required": ["id", "user_id", "title", "status", "version", "created_at", "updated_at"],
+        "additionalProperties": false
+      },
+      "authentication": "JWT token in Authorization header (Bearer scheme)",
+      "errors": ["TASK_NOT_FOUND", "INVALID_INPUT", "UNAUTHORIZED", "FORBIDDEN", "CONFLICT", "DATABASE_ERROR", "INTERNAL_ERROR"]
+    },
+    {
+      "name": "complete_task",
+      "description": "Mark a task as completed for the authenticated user. Idempotent operation (completing an already-completed task succeeds without error).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the task to complete (required)"
+          }
+        },
+        "required": ["task_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": ["string", "null"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["completed"],
+            "description": "Always 'completed' after successful operation"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Incremented version number (unless already completed)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Updated to current timestamp (unless already completed)"
+          }
+        },
+        "required": ["id", "user_id", "title", "status", "version", "created_at", "updated_at"],
+        "additionalProperties": false
+      },
+      "authentication": "JWT token in Authorization header (Bearer scheme)",
+      "errors": ["TASK_NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "DATABASE_ERROR", "INTERNAL_ERROR"]
+    },
+    {
+      "name": "delete_task",
+      "description": "Permanently delete a task for the authenticated user. This operation cannot be undone.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the task to delete (required)"
+          }
+        },
+        "required": ["task_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Confirmation message"
+          },
+          "task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the deleted task"
+          }
+        },
+        "required": ["message", "task_id"],
+        "additionalProperties": false
+      },
+      "authentication": "JWT token in Authorization header (Bearer scheme)",
+      "errors": ["TASK_NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "DATABASE_ERROR", "INTERNAL_ERROR"]
+    }
+  ]
+}
