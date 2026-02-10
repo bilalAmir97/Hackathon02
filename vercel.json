@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd Phase-III/frontend && npm install && npm run build",
+  "outputDirectory": "Phase-III/frontend/.next",
+  "installCommand": "cd Phase-III/frontend && npm install",
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/Phase-III/frontend/$1"
+    }
+  ]
+}
