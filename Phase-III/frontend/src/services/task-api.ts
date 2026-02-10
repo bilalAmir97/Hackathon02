@@ -125,7 +125,7 @@ export const taskService: TaskService = {
       }
 
       if (taskData.description !== undefined) {
-        requestData.description = taskData.description;
+        requestData.description = taskData.description ?? undefined;
       }
 
       if (taskData.completed !== undefined) {
