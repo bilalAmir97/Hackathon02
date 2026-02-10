@@ -17,17 +17,17 @@ import { ChatInterface } from '@/components/chat/ChatInterface';
  */
 export default function ChatPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
     // Redirect to login if not authenticated
-    if (!isLoading && !isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       router.push('/');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, loading, router]);
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
