@@ -32,7 +32,7 @@ Example:
     ...     token = generate_jwt_token(auth_user)
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError

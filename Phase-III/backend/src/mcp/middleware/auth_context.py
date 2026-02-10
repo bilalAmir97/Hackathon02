@@ -5,14 +5,13 @@ JWT tokens in MCP request headers. Integrates with existing Phase-III
 authentication infrastructure.
 """
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.token import decode_token
-from src.config import settings
 from src.database import AsyncSessionLocal
 from src.mcp.middleware.error_handler import MCPErrorCode, format_mcp_error
 
@@ -77,7 +76,7 @@ def extract_user_id(headers: dict[str, str]) -> UUID:
 
 
 @asynccontextmanager
-async def get_mcp_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_mcp_session() -> AsyncGenerator[AsyncSession]:
     """Create request-scoped database session for MCP tools.
 
     This context manager ensures stateless execution by creating a new

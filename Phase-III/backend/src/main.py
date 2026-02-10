@@ -187,9 +187,12 @@ This API uses **JWT (JSON Web Token)** authentication with Bearer tokens.
     app.add_exception_handler(Exception, generic_exception_handler)
 
     # Register API routers
-    from .api.routes import auth, health, tasks
+    from .api.routes import auth, chat, chat_stream, conversations, health, tasks
 
     app.include_router(auth.router)
+    app.include_router(chat.router)
+    app.include_router(chat_stream.router)
+    app.include_router(conversations.router)
     app.include_router(health.router)
     app.include_router(tasks.router)
 

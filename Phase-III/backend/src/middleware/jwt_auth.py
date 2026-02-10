@@ -25,11 +25,12 @@ Usage:
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 import jwt
-from jwt.exceptions import ExpiredSignatureError, InvalidTokenError as JWTInvalidTokenError
+from jwt.exceptions import ExpiredSignatureError
+from jwt.exceptions import InvalidTokenError as JWTInvalidTokenError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,7 +52,7 @@ def _log_structured(level: str, event_type: str, **context):
         event_type: Type of authentication event
         **context: Additional context fields (user_id, email, reason, duration_ms, etc.)
     """
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
     log_data = {
         "timestamp": timestamp,
         "event_type": event_type,
@@ -187,8 +188,8 @@ async def verify_jwt_token(
             exp = unverified_payload.get("exp")
 
             # Format timestamps for logging
-            iat_str = datetime.fromtimestamp(iat, tz=timezone.utc).isoformat() if iat else "unknown"
-            exp_str = datetime.fromtimestamp(exp, tz=timezone.utc).isoformat() if exp else "unknown"
+            iat_str = datetime.fromtimestamp(iat, tz=UTC).isoformat() if iat else "unknown"
+            exp_str = datetime.fromtimestamp(exp, tz=UTC).isoformat() if exp else "unknown"
 
             # T078: Structured logging for token expiration
             _log_structured(
@@ -322,13 +323,13 @@ async def verify_jwt_token(
     # If user has changed password, verify token was issued AFTER the change
     if user.password_changed_at is not None:
         # Convert iat (Unix timestamp) to datetime for comparison
-        token_issued_at = datetime.fromtimestamp(iat, tz=timezone.utc)
+        token_issued_at = datetime.fromtimestamp(iat, tz=UTC)
 
         # Ensure password_changed_at is timezone-aware for comparison
         password_changed_at = user.password_changed_at
         if password_changed_at.tzinfo is None:
             # If stored as naive datetime, assume UTC
-            password_changed_at = password_changed_at.replace(tzinfo=timezone.utc)
+            password_changed_at = password_changed_at.replace(tzinfo=UTC)
 
         # Token must be issued AFTER password change
         if token_issued_at < password_changed_at:

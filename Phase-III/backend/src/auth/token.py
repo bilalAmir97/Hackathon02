@@ -29,7 +29,7 @@ Example:
     >>> assert is_valid is True
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt
@@ -88,7 +88,7 @@ def create_access_token(
         expires_delta = timedelta(minutes=30)  # Default: 30 minutes
 
     # Get current time in UTC
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expire = now + expires_delta
 
     # Build JWT payload with required claims

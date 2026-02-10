@@ -19,6 +19,8 @@ test_engine = create_async_engine(
     TEST_DATABASE_URL,
     echo=False,  # Set to True for SQL debugging
     connect_args={"check_same_thread": False},  # Required for SQLite
+    # Note: SQLite uses StaticPool and doesn't support pool_size/max_overflow
+    # Concurrent write performance is limited by SQLite's write serialization
 )
 
 # Create async session factory for tests

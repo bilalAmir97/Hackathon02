@@ -15,17 +15,25 @@ Multi-user todo application backend with FastAPI, SQLModel, and Neon PostgreSQL.
 ## Features
 
 - RESTful API for task management (CRUD operations)
+- **AI-Powered Conversational Interface** - Natural language task management via chat endpoint
+- **OpenAI Agents SDK Integration** - Real AI agent with MCP tools for task operations
+- **Dual Provider Support** - Groq (primary) with OpenAI fallback for reliability
+- **Conversation History** - Context-aware multi-turn conversations with automatic truncation
+- **Tool Call Transparency** - Full auditability of all AI tool executions
 - User-scoped data isolation
 - Async database operations with connection pooling
 - RFC 7807 Problem Details error responses
-- Structured JSON logging
+- Structured JSON logging with latency tracking
 - Pagination support for list endpoints
+- Retry logic with exponential backoff for transient failures
 
 ## Tech Stack
 
 - **Framework**: FastAPI (async web framework)
 - **ORM**: SQLModel (async SQLAlchemy wrapper)
 - **Database**: Neon Serverless PostgreSQL
+- **AI Agent**: OpenAI Agents SDK with Groq (primary) and OpenAI (fallback)
+- **MCP Tools**: Model Context Protocol for tool integration
 - **Validation**: Pydantic v2
 - **Testing**: pytest, pytest-asyncio, httpx
 - **Code Quality**: ruff (linting & formatting)
@@ -61,9 +69,23 @@ uv sync
 # Copy the example environment file
 cp .env.example .env
 
-# Edit .env with your Neon database credentials
-# DATABASE_URL=postgresql+asyncpg://user:password@host:5432/database
+# Edit .env with your configuration:
+# 1. Neon database credentials (required)
+# 2. Groq API key (required for AI agent)
+# 3. OpenAI API key (optional, for fallback)
+# 4. Better Auth secret (required for JWT authentication)
 ```
+
+**Required Configuration**:
+- `DATABASE_URL`: Your Neon PostgreSQL connection string
+- `GROQ_API_KEY`: Get from https://console.groq.com/keys
+- `BETTER_AUTH_SECRET`: Generate with `openssl rand -base64 32`
+
+**Optional Configuration**:
+- `OPENAI_API_KEY`: Get from https://platform.openai.com/api-keys (for fallback)
+- `OPENAI_FALLBACK_ENABLED`: Set to `true` to enable OpenAI fallback on Groq rate limits
+
+See `.env.example` for all available configuration options.
 
 ### 4. Run database migrations (if applicable)
 
@@ -411,6 +433,126 @@ All errors follow RFC 7807 Problem Details format:
   "instance": "/users/550e8400-e29b-41d4-a716-446655440000/tasks"
 }
 ```
+
+### AI Chat Endpoint (Phase III)
+
+**Endpoint**: `POST /users/{user_id}/chat`
+
+**Description**: Conversational AI interface for natural language task management. The agent understands user intent and executes appropriate MCP tools (add_task, list_tasks, update_task, complete_task, delete_task).
+
+**Features**:
+- Natural language understanding for task operations
+- Multi-turn conversations with context awareness
+- Automatic conversation history management (last 20 messages)
+- Full tool call transparency and auditability
+- Retry logic with exponential backoff
+- Groq primary provider with OpenAI fallback
+
+**Request Body**:
+```json
+{
+  "message": "Add a task to buy groceries",
+  "conversation_id": 123
+}
+```
+
+**Fields**:
+- `message` (required): User's natural language message
+- `conversation_id` (optional): Resume existing conversation (omit for new conversation)
+
+**Example - Create Task**:
+```bash
+curl -X POST http://localhost:8000/users/550e8400-e29b-41d4-a716-446655440000/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -d '{
+    "message": "Add a task to buy groceries"
+  }'
+```
+
+**Response** (200 OK):
+```json
+{
+  "conversation_id": 123,
+  "response": "I've added a task to buy groceries for you.",
+  "tool_calls": [
+    {
+      "tool_name": "add_task",
+      "input_parameters": {
+        "title": "Buy groceries"
+      },
+      "output_result": {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "title": "Buy groceries",
+        "status": "pending"
+      },
+      "execution_status": "success",
+      "error_message": null,
+      "timestamp": "2026-02-10T10:30:45.123Z"
+    }
+  ]
+}
+```
+
+**Example - List Tasks**:
+```bash
+curl -X POST http://localhost:8000/users/550e8400-e29b-41d4-a716-446655440000/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -d '{
+    "message": "Show me my tasks",
+    "conversation_id": 123
+  }'
+```
+
+**Example - Multi-turn Conversation**:
+```bash
+# First message
+curl -X POST http://localhost:8000/users/550e8400-e29b-41d4-a716-446655440000/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -d '{"message": "Add a task to buy milk"}'
+
+# Second message (uses context from first)
+curl -X POST http://localhost:8000/users/550e8400-e29b-41d4-a716-446655440000/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <jwt-token>" \
+  -d '{
+    "message": "Mark it as complete",
+    "conversation_id": 123
+  }'
+```
+
+**Tool Call Transparency**:
+
+Every tool execution includes full transparency:
+- `tool_name`: Which MCP tool was called
+- `input_parameters`: Parameters passed to the tool
+- `output_result`: Result returned by the tool
+- `execution_status`: "success" or "error"
+- `error_message`: Error details if execution failed
+- `timestamp`: ISO 8601 timestamp of execution
+
+**Supported Natural Language Patterns**:
+- Create: "Add a task to...", "Create a task for...", "I need to..."
+- List: "Show my tasks", "What tasks do I have?", "List all tasks"
+- Update: "Change task X to...", "Update the title of..."
+- Complete: "Mark task X as done", "Complete the task about..."
+- Delete: "Remove task X", "Delete the task about..."
+
+**AI Agent Configuration**:
+- **Primary Provider**: Groq (openai/gpt-oss-20b model)
+- **Fallback Provider**: OpenAI (gpt-4o-mini model)
+- **Temperature**: 0.1 (deterministic, consistent responses)
+- **Max Tokens**: 500 (concise responses)
+- **History Limit**: 20 messages (automatic truncation)
+- **Retry Policy**: 3 attempts with exponential backoff (100ms → 5s)
+
+**Error Handling**:
+- Transient failures (rate limits, timeouts) trigger automatic retry
+- Groq rate limit triggers automatic fallback to OpenAI
+- Tool execution errors are captured and returned in tool_calls
+- User receives friendly error messages for all failure scenarios
 
 ### Authentication Notes
 

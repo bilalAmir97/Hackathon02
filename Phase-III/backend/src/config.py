@@ -111,6 +111,109 @@ class Settings(BaseSettings):
         le=300000
     )
 
+    # Groq API Configuration (Primary AI Provider)
+    groq_api_key: str = Field(
+        ...,
+        description="Groq API key for AI agent (primary provider)",
+        min_length=1,
+        examples=["gsk_..."],
+    )
+    groq_model: str = Field(
+        default="openai/gpt-oss-20b",
+        description="Groq model to use for AI agent",
+        examples=["openai/gpt-oss-20b", "llama-3.3-70b-versatile", "mixtral-8x7b-32768"],
+    )
+    groq_rate_limit_tpm: int = Field(
+        default=200000,
+        description="Groq tokens per minute rate limit",
+        ge=1,
+    )
+    groq_rate_limit_rpm: int = Field(
+        default=30,
+        description="Groq requests per minute rate limit",
+        ge=1,
+    )
+    groq_rate_limit_rpd: int = Field(
+        default=1000,
+        description="Groq requests per day rate limit",
+        ge=1,
+    )
+
+    # OpenAI API Configuration (Fallback Provider)
+    openai_api_key: str | None = Field(
+        default=None,
+        description="OpenAI API key for fallback when Groq fails (optional)",
+        min_length=1,
+        examples=["sk-..."],
+    )
+    openai_fallback_model: str = Field(
+        default="gpt-4o-mini",
+        description="OpenAI model to use for fallback",
+        examples=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"],
+    )
+    openai_fallback_enabled: bool = Field(
+        default=False,
+        description="Enable automatic fallback to OpenAI when Groq fails (requires openai_api_key)",
+    )
+
+    # Agent Behavior Configuration
+    agent_temperature: float = Field(
+        default=0.1,
+        description="Temperature for AI responses (0.0 = deterministic, 1.0 = creative)",
+        ge=0.0,
+        le=2.0,
+    )
+    agent_max_tokens: int = Field(
+        default=500,
+        description="Maximum tokens in agent response",
+        ge=100,
+        le=4096,
+    )
+    agent_max_history_messages: int = Field(
+        default=20,
+        description="Maximum conversation history messages to include in context",
+        ge=1,
+        le=100,
+    )
+    agent_timeout_seconds: int = Field(
+        default=30,
+        description="Agent request timeout in seconds",
+        ge=5,
+        le=300,
+    )
+
+    # Retry Policy Configuration
+    retry_max_attempts_llm: int = Field(
+        default=3,
+        description="Maximum retry attempts for LLM API calls",
+        ge=1,
+        le=10,
+    )
+    retry_max_attempts_tool: int = Field(
+        default=2,
+        description="Maximum retry attempts for tool executions",
+        ge=1,
+        le=10,
+    )
+    retry_initial_delay_ms: int = Field(
+        default=100,
+        description="Initial delay in milliseconds before first retry",
+        ge=10,
+        le=10000,
+    )
+    retry_max_delay_ms: int = Field(
+        default=5000,
+        description="Maximum delay in milliseconds between retries",
+        ge=100,
+        le=60000,
+    )
+    retry_backoff_multiplier: float = Field(
+        default=2.0,
+        description="Exponential backoff multiplier for retry delays",
+        ge=1.0,
+        le=10.0,
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )

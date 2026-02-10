@@ -4,7 +4,6 @@ This module defines Pydantic models for MCP tool outputs.
 All schemas follow the contracts defined in contracts/mcp-tools.json.
 """
 
-from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field

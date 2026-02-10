@@ -5,15 +5,14 @@ for running the server. Tools are registered here and the server listens
 on stdio for MCP protocol communication.
 """
 
-from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-from src.config import settings
+from mcp.server import Server
 from src.mcp.tools.add_task import add_task
-from src.mcp.tools.list_tasks import list_tasks
 from src.mcp.tools.complete_task import complete_task
-from src.mcp.tools.update_task import update_task
 from src.mcp.tools.delete_task import delete_task
+from src.mcp.tools.list_tasks import list_tasks
+from src.mcp.tools.update_task import update_task
 
 # Initialize MCP server instance
 app = Server("todo-mcp-server")

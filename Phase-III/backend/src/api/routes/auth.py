@@ -4,9 +4,8 @@ Provides user registration and login endpoints that issue JWT tokens
 for authenticated access to protected resources.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_session
@@ -124,7 +123,7 @@ async def register(
 
         return auth_response
 
-    except DuplicateEmailError as e:
+    except DuplicateEmailError:
         # Handle duplicate email error from auth_operations
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
@@ -142,7 +141,7 @@ async def register(
                 "detail": str(e),
             },
         )
-    except Exception as e:
+    except Exception:
         # Handle unexpected errors
         await session.rollback()
         return JSONResponse(
@@ -265,7 +264,7 @@ async def login(
                     "detail": "Invalid email or password",
                 },
             )
-    except Exception as e:
+    except Exception:
         # Handle unexpected errors
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

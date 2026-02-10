@@ -7,15 +7,14 @@ description, or both) with optimistic concurrency control.
 
 import logging
 import time
-from uuid import UUID
 
 from src.mcp.middleware.auth_context import extract_user_id, get_mcp_session
-from src.mcp.middleware.error_handler import format_mcp_error, MCPErrorCode
+from src.mcp.middleware.error_handler import MCPErrorCode, format_mcp_error
 from src.mcp.schemas.tool_inputs import UpdateTaskInput
 from src.mcp.schemas.tool_outputs import TaskOutput
-from src.use_cases.task_operations import update_task as update_task_use_case
-from src.middleware.error_handler import TaskNotFoundError, DatabaseError
+from src.middleware.error_handler import DatabaseError, TaskNotFoundError
 from src.schemas.task import TaskUpdate
+from src.use_cases.task_operations import update_task as update_task_use_case
 
 logger = logging.getLogger(__name__)
 
@@ -118,14 +117,14 @@ async def update_task(input_data: dict, headers: dict) -> dict:
 
                 return output.model_dump()
 
-            except TaskNotFoundError as e:
+            except TaskNotFoundError:
                 logger.warning(
                     f"update_task: Task not found - task_id={validated_input.task_id}, "
                     f"user_id={user_id}"
                 )
                 raise Exception(format_mcp_error(
                     MCPErrorCode.TASK_NOT_FOUND,
-                    f"Task not found or you don't have permission to update it."
+                    "Task not found or you don't have permission to update it."
                 ))
 
             except DatabaseError as e:

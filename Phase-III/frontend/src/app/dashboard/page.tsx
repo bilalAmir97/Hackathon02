@@ -41,6 +41,17 @@ export default function DashboardPage() {
     }
   }, [user?.id, authLoading, fetchTasks]);
 
+  // Listen for task refresh events from chat widget
+  useEffect(() => {
+    const handleTaskRefresh = () => {
+      console.log('[Dashboard] Received task-refresh event, fetching tasks...');
+      fetchTasks();
+    };
+
+    window.addEventListener('task-refresh', handleTaskRefresh);
+    return () => window.removeEventListener('task-refresh', handleTaskRefresh);
+  }, [fetchTasks]);
+
   // Initialize GSAP animations when component mounts
   useEffect(() => {
     // Ensure animations only run once after initial load

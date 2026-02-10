@@ -7,14 +7,13 @@ validation to prevent unauthorized deletions.
 
 import logging
 import time
-from uuid import UUID
 
 from src.mcp.middleware.auth_context import extract_user_id, get_mcp_session
-from src.mcp.middleware.error_handler import format_mcp_error, MCPErrorCode
+from src.mcp.middleware.error_handler import MCPErrorCode, format_mcp_error
 from src.mcp.schemas.tool_inputs import DeleteTaskInput
 from src.mcp.schemas.tool_outputs import DeleteTaskOutput
+from src.middleware.error_handler import DatabaseError, TaskNotFoundError
 from src.use_cases.task_operations import delete_task as delete_task_use_case
-from src.middleware.error_handler import TaskNotFoundError, DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -97,14 +96,14 @@ async def delete_task(input_data: dict, headers: dict) -> dict:
 
                 return output.model_dump()
 
-            except TaskNotFoundError as e:
+            except TaskNotFoundError:
                 logger.warning(
                     f"delete_task: Task not found - task_id={validated_input.task_id}, "
                     f"user_id={user_id}"
                 )
                 raise Exception(format_mcp_error(
                     MCPErrorCode.TASK_NOT_FOUND,
-                    f"Task not found or you don't have permission to delete it."
+                    "Task not found or you don't have permission to delete it."
                 ))
 
             except DatabaseError as e:

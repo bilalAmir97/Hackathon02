@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { getStoredUser, isAuthenticated as checkIsAuthenticated, clearAuth, authApi } from '@/lib/api-client';
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  getToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,7 +54,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthStatus();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const getToken = useCallback(async (): Promise<string | null> => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    return localStorage.getItem('jwt_token');
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
       const response = await authApi.login({ email, password });
@@ -62,9 +70,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const register = async (email: string, password: string) => {
+  const register = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
       const response = await authApi.register({ email, password });
@@ -73,22 +81,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await authApi.logout();
     setUser(null);
     setIsAuthenticated(false);
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     isAuthenticated,
     loading,
     login,
     register,
     logout,
-  };
+    getToken,
+  }), [user, isAuthenticated, loading, login, register, logout, getToken]);
 
   return (
     <AuthContext.Provider value={value}>

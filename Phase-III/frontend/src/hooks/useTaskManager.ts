@@ -22,16 +22,16 @@ export const useTaskManager = () => {
       return;
     }
 
-    console.log('Fetching tasks for user ID:', user.id);
+    console.log('[useTaskManager] fetchTasks called for user ID:', user.id);
 
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       const tasks = await taskApi.getTasks(user.id, true); // showLoading=true by default
-      console.log(`Successfully fetched ${tasks.length} tasks`);
+      console.log(`[useTaskManager] Successfully fetched ${tasks.length} tasks:`, tasks.map(t => ({ id: t.id, title: t.title })));
       setState({ tasks, loading: false, error: null });
     } catch (err) {
-      console.error('Error fetching tasks:', err);
+      console.error('[useTaskManager] Error fetching tasks:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch tasks';
       setState(prev => ({
         ...prev,

@@ -4,6 +4,8 @@ This module provides reusable dependency functions for FastAPI endpoints,
 including JWT token extraction, verification, and user authentication.
 """
 
+from uuid import UUID
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import ExpiredSignatureError
@@ -121,3 +123,31 @@ async def get_current_user(
             detail=f"Authentication failed: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+async def get_current_user_id(
+    current_user: dict = Depends(get_current_user)
+) -> UUID:
+    """Extract user_id from authenticated user claims.
+
+    This is a convenience dependency that extracts just the user_id
+    from the JWT claims, converting it to UUID type.
+
+    Args:
+        current_user: User claims from get_current_user dependency
+
+    Returns:
+        UUID: User's unique identifier
+
+    Usage:
+        @router.get("/api/{user_id}/resource")
+        async def get_resource(
+            user_id: UUID = Path(...),
+            current_user_id: UUID = Depends(get_current_user_id)
+        ):
+            # Validate user_id matches current_user_id
+            if user_id != current_user_id:
+                raise HTTPException(403, "Forbidden")
+            return {"user_id": user_id}
+    """
+    return UUID(current_user["user_id"])
