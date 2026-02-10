@@ -1,0 +1,182 @@
+openapi: 3.0.3
+info:
+  title: Chat Streaming API
+  description: Streaming chat endpoint for Phase-III AI Chat Interface
+  version: 1.0.0
+
+servers:
+  - url: https://api.example.com
+    description: Production server
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /api/{user_id}/chat/stream:
+    post:
+      summary: Stream chat response
+      description: |
+        Send a message to the AI agent and receive a streaming response.
+        The response is streamed as NDJSON (Newline Delimited JSON) with
+        different message types: token, tool_call, and done.
+      operationId: streamChatResponse
+      tags:
+        - chat
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID (must match JWT token)
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: User's message text
+                  example: "Create a task to buy groceries"
+                conversation_id:
+                  type: integer
+                  nullable: true
+                  description: Optional conversation ID to resume (null for new conversation)
+                  example: 1
+      responses:
+        '200':
+          description: Streaming response (NDJSON format)
+          content:
+            application/x-ndjson:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/TokenChunk'
+                  - $ref: '#/components/schemas/ToolCallChunk'
+                  - $ref: '#/components/schemas/DoneChunk'
+              examples:
+                tokenStream:
+                  summary: Token streaming example
+                  value: |
+                    {"type":"token","content":"I'll"}
+                    {"type":"token","content":" create"}
+                    {"type":"token","content":" that"}
+                    {"type":"token","content":" task"}
+                    {"type":"tool_call","data":{"tool_name":"add_task","status":"pending"}}
+                    {"type":"tool_call","data":{"tool_name":"add_task","status":"success","result":{"id":123}}}
+                    {"type":"done","conversation_id":1}
+        '401':
+          description: Unauthorized - Invalid or expired JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user_id doesn't match JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better Auth
+
+  schemas:
+    TokenChunk:
+      type: object
+      required:
+        - type
+        - content
+      properties:
+        type:
+          type: string
+          enum: [token]
+          description: Message type identifier
+        content:
+          type: string
+          description: Single token or word from streaming response
+          example: "Hello"
+
+    ToolCallChunk:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum: [tool_call]
+          description: Message type identifier
+        data:
+          type: object
+          required:
+            - tool_name
+            - status
+          properties:
+            tool_name:
+              type: string
+              description: Name of the MCP tool being called
+              example: "add_task"
+            status:
+              type: string
+              enum: [pending, success, error]
+              description: Tool execution status
+            input_parameters:
+              type: object
+              description: Tool input parameters (present when status is pending or success)
+              example: {"title": "Buy groceries", "description": "Get milk and bread"}
+            output_result:
+              type: object
+              description: Tool execution result (present when status is success)
+              example: {"id": 123, "title": "Buy groceries", "status": "pending"}
+            error_message:
+              type: string
+              nullable: true
+              description: Error message (present when status is error)
+              example: "Task creation failed: database error"
+            timestamp:
+              type: string
+              format: date-time
+              description: Tool execution timestamp (ISO 8601)
+              example: "2026-02-10T10:00:05Z"
+
+    DoneChunk:
+      type: object
+      required:
+        - type
+        - conversation_id
+      properties:
+        type:
+          type: string
+          enum: [done]
+          description: Message type identifier
+        conversation_id:
+          type: integer
+          description: Conversation ID (for new conversations or resumed ones)
+          example: 1
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: "Cannot access chat for different user"

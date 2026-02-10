@@ -1,0 +1,277 @@
+openapi: 3.0.3
+info:
+  title: Conversations API
+  description: Conversation management endpoints for Phase-III AI Chat Interface
+  version: 1.0.0
+
+servers:
+  - url: https://api.example.com
+    description: Production server
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /api/{user_id}/conversations:
+    get:
+      summary: List user conversations
+      description: |
+        Get a list of all conversations for the authenticated user,
+        sorted by most recent activity (updated_at descending).
+        Each conversation includes a preview (first user message).
+      operationId: listConversations
+      tags:
+        - conversations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID (must match JWT token)
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of conversations to return
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - conversations
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConversationSummary'
+        '401':
+          description: Unauthorized - Invalid or expired JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user_id doesn't match JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/{user_id}/conversations/{conversation_id}/messages:
+    get:
+      summary: Get conversation messages
+      description: |
+        Get message history for a specific conversation.
+        Messages are returned in chronological order (oldest first).
+        Includes tool call transparency data for assistant messages.
+      operationId: getConversationMessages
+      tags:
+        - conversations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID (must match JWT token)
+          schema:
+            type: string
+            format: uuid
+        - name: conversation_id
+          in: path
+          required: true
+          description: Conversation ID
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of messages to return
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Conversation messages
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - conversation_id
+                  - messages
+                properties:
+                  conversation_id:
+                    type: integer
+                    description: Conversation ID
+                    example: 1
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+        '401':
+          description: Unauthorized - Invalid or expired JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - conversation doesn't belong to user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better Auth
+
+  schemas:
+    ConversationSummary:
+      type: object
+      required:
+        - id
+        - created_at
+        - updated_at
+        - preview
+        - message_count
+      properties:
+        id:
+          type: integer
+          description: Unique conversation identifier
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+          description: When conversation was created (ISO 8601)
+          example: "2026-02-10T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last message timestamp (ISO 8601)
+          example: "2026-02-10T10:30:00Z"
+        preview:
+          type: string
+          description: First user message or "New conversation"
+          example: "Create a task to buy groceries"
+        message_count:
+          type: integer
+          description: Total number of messages in conversation
+          example: 8
+
+    Message:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - created_at
+      properties:
+        id:
+          type: integer
+          description: Unique message identifier
+          example: 1
+        role:
+          type: string
+          enum: [user, assistant]
+          description: Message sender
+          example: "user"
+        content:
+          type: string
+          description: Message text content
+          example: "Create a task to buy groceries"
+        tool_calls:
+          type: array
+          nullable: true
+          description: Tool calls executed (assistant messages only)
+          items:
+            $ref: '#/components/schemas/ToolCall'
+        created_at:
+          type: string
+          format: date-time
+          description: When message was created (ISO 8601)
+          example: "2026-02-10T10:00:00Z"
+
+    ToolCall:
+      type: object
+      required:
+        - tool_name
+        - input_parameters
+        - output_result
+        - execution_status
+      properties:
+        tool_name:
+          type: string
+          description: Name of the MCP tool
+          example: "add_task"
+        input_parameters:
+          type: object
+          description: Tool input parameters
+          example: {"title": "Buy groceries", "description": "Get milk and bread"}
+        output_result:
+          type: object
+          description: Tool execution result
+          example: {"id": 123, "title": "Buy groceries", "status": "pending"}
+        execution_status:
+          type: string
+          enum: [success, error]
+          description: Tool execution status
+          example: "success"
+        error_message:
+          type: string
+          nullable: true
+          description: Error message if execution failed
+          example: null
+        timestamp:
+          type: string
+          format: date-time
+          description: Tool execution timestamp (ISO 8601)
+          example: "2026-02-10T10:00:05Z"
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: "Conversation not found"
