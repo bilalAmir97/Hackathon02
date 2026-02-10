@@ -132,7 +132,7 @@ export interface StreamingCallbacks {
  */
 export interface ChatClientConfig {
   baseUrl: string;
-  getToken: () => Promise<string>;
+  getToken: () => Promise<string | null>;
 }
 
 /**

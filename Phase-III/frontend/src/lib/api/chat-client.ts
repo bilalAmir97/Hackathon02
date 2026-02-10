@@ -36,7 +36,7 @@ function decodeJWT(token: string): { user_id: string } {
  */
 export class ChatClient {
   private baseUrl: string;
-  private getToken: () => Promise<string>;
+  private getToken: () => Promise<string | null>;
 
   constructor(config: ChatClientConfig) {
     this.baseUrl = config.baseUrl;
@@ -48,6 +48,9 @@ export class ChatClient {
    */
   private async getUserId(): Promise<string> {
     const token = await this.getToken();
+    if (!token) {
+      throw new AuthenticationError('No authentication token available');
+    }
     const { user_id } = decodeJWT(token);
     return user_id;
   }
@@ -60,6 +63,9 @@ export class ChatClient {
     options: RequestInit = {}
   ): Promise<Response> {
     const token = await this.getToken();
+    if (!token) {
+      throw new AuthenticationError('No authentication token available');
+    }
 
     const response = await fetch(url, {
       ...options,
