@@ -12,6 +12,9 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ChatInterface } from '@/components/chat/ChatInterface';
 
+// Disable static generation for this page since it requires client-side auth
+export const dynamic = 'force-dynamic';
+
 /**
  * Chat page component
  */
