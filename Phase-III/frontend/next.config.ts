@@ -12,8 +12,6 @@ const nextConfig: NextConfig = {
   basePath: '',
   trailingSlash: false,
   reactStrictMode: true,
-  // Use standalone output for better deployment compatibility
-  output: 'standalone',
 };
 
 export default nextConfig;
