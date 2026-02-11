@@ -92,7 +92,7 @@ export const memoize = <T extends (...args: any[]) => any>(func: T): T => {
 export const measureMemoryUsage = (): { used: number; total: number; limit: number } | null => {
   if ('memory' in performance) {
     // @ts-ignore - memory property is not standard
-    const memoryInfo = performance.memory;
+    const memoryInfo = performance.memory as any;
     return {
       used: memoryInfo.usedJSHeapSize,
       total: memoryInfo.totalJSHeapSize,
