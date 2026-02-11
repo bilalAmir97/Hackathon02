@@ -73,17 +73,17 @@ export const throttle = <T extends (...args: any[]) => any>(
 export const memoize = <T extends (...args: any[]) => any>(func: T): T => {
   const cache = new Map<string, ReturnType<T>>();
 
-  return function (...args: Parameters<T>): ReturnType<T> {
+  return ((...args: Parameters<T>): ReturnType<T> => {
     const key = JSON.stringify(args);
 
     if (cache.has(key)) {
       return cache.get(key)!;
     }
 
-    const result = func.apply(this, args);
+    const result = func(...args);
     cache.set(key, result);
     return result;
-  } as T;
+  }) as T;
 };
 
 /**
