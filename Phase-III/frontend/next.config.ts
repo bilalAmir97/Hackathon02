@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
   basePath: '',
   trailingSlash: false,
   reactStrictMode: true,
+  // Disable static page generation errors for pages that require runtime context
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
+  // Use standalone output for better deployment compatibility
+  output: 'standalone',
 };
 
 export default nextConfig;
