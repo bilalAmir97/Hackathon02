@@ -68,13 +68,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onDe
   return (
     <div
       id={`task-${task.id}`}
-      className={`p-4 rounded-lg border transition-all duration-300 hover:shadow-lg hover:shadow-[var(--glass-shadow)] ${
+      className={`w-full max-w-full p-4 rounded-lg border transition-all duration-300 hover:shadow-lg hover:shadow-[var(--glass-shadow)] ${
         task.completed
           ? 'bg-[var(--soft-dark-bg-secondary)]/50 border-[var(--color-success)]/30'
           : 'bg-[var(--glass-bg)] border-[var(--glass-border)] hover:border-[var(--primary-accent)]/40'
       }`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-0">
+      <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 w-full">
         <input
           type="checkbox"
           checked={task.completed}
@@ -82,13 +82,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onDe
           className="h-5 w-5 rounded border-[var(--glass-border)] bg-[var(--soft-dark-bg-secondary)] text-[var(--primary-accent)] focus:ring-[var(--primary-accent)] focus:ring-offset-0 flex-shrink-0"
         />
 
-        <div className="flex-1 min-w-0">
-          <h3 className={`text-lg font-medium ${task.completed ? 'text-[var(--text-secondary)] line-through' : 'text-[var(--text-primary)]'}`}>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <h3 className={`text-lg font-medium break-words ${task.completed ? 'text-[var(--text-secondary)] line-through' : 'text-[var(--text-primary)]'}`}>
             {task.title}
           </h3>
 
           {task.description && (
-            <p className={`mt-1 text-sm ${task.completed ? 'text-[var(--text-secondary)]/70' : 'text-[var(--text-secondary)]'}`}>
+            <p className={`mt-1 text-sm break-words ${task.completed ? 'text-[var(--text-secondary)]/70' : 'text-[var(--text-secondary)]'}`}>
               {task.description}
             </p>
           )}
@@ -101,12 +101,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onDe
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 justify-end">
+        <div className="flex flex-wrap gap-2 justify-end sm:justify-start w-full sm:w-auto">
           <SoftDarkButton
             variant="ghost"
             size="sm"
             onClick={handleToggleComplete}
-            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex-shrink-0 hover:scale-105 transition-transform duration-200"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:scale-105 transition-transform duration-200"
           >
             {task.completed ? 'Undo' : 'Complete'}
           </SoftDarkButton>
@@ -116,7 +116,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onDe
               variant="ghost"
               size="sm"
               onClick={() => onEdit(task)}
-              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex-shrink-0 hover:scale-105 transition-transform duration-200"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:scale-105 transition-transform duration-200"
             >
               Edit
             </SoftDarkButton>
@@ -126,7 +126,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggleComplete, onDe
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            className="text-[var(--color-danger)] hover:text-[var(--color-danger)]/80 flex-shrink-0 hover:scale-105 transition-transform duration-200"
+            className="text-[var(--color-danger)] hover:text-[var(--color-danger)]/80 hover:scale-105 transition-transform duration-200"
           >
             Delete
           </SoftDarkButton>

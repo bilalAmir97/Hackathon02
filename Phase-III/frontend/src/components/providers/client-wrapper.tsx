@@ -32,9 +32,16 @@ export const ClientWrapper: React.FC<ClientWrapperProps> = ({ children }) => {
     }
   }, []);
 
+  // Always provide AuthProvider (safe for SSR), but conditionally render other providers
   if (!isMounted) {
-    // Render a minimal fallback during SSR
-    return <>{children}</>;
+    // Render minimal providers during SSR
+    return (
+      <ErrorBoundary>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </ErrorBoundary>
+    );
   }
 
   return (

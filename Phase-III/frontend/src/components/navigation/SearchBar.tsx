@@ -19,6 +19,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
+  const handleIconClick = () => {
+    if (onSearch) {
+      onSearch(query);
+    }
+  };
+
   // Handle keyboard shortcut for focusing search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -43,9 +49,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   }, []);
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+    <form onSubmit={handleSubmit} className="w-full relative z-10">
+      <div className="relative z-10">
+        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-0">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -54,11 +60,26 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            console.log('Input changed:', e.target.value);
+            setQuery(e.target.value);
+          }}
+          onFocus={() => console.log('Input focused')}
+          onBlur={() => console.log('Input blurred')}
+          onClick={() => console.log('Input clicked')}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-accent)] focus:border-transparent backdrop-blur-[var(--glass-blur)]"
+          autoComplete="off"
+          disabled={false}
+          readOnly={false}
+          className="relative z-20 w-full pl-10 pr-4 sm:pr-14 py-2 border border-[var(--glass-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-accent)] focus:border-transparent cursor-text"
+          style={{
+            pointerEvents: 'auto',
+            color: '#000000',
+            backgroundColor: '#ffffff',
+            caretColor: '#000000'
+          }}
         />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+        <div className="absolute inset-y-0 right-0 items-center pr-3 hidden sm:flex pointer-events-none z-0">
           <kbd className="px-2 py-1 text-xs font-semibold text-[var(--text-secondary)] bg-[var(--soft-dark-bg-secondary)] border border-[var(--glass-border)] rounded-md">
             ⌘K
           </kbd>

@@ -227,7 +227,7 @@ export function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
       />
 
       {/* Chat Widget */}
-      <div className="fixed bottom-24 right-6 w-[90vw] sm:w-96 h-[600px] max-h-[80vh] bg-[var(--soft-dark-bg)]/95 backdrop-blur-xl border border-[var(--glass-border)] rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden chat-widget-enter"
+      <div className="fixed bottom-24 right-6 w-[calc(100vw-3rem)] sm:w-96 max-w-[90vw] h-[600px] max-h-[80vh] bg-[var(--soft-dark-bg)]/95 backdrop-blur-xl border border-[var(--glass-border)] rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden chat-widget-enter"
            style={{
              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
            }}>

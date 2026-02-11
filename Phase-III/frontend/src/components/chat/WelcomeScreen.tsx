@@ -1,8 +1,8 @@
 /**
  * WelcomeScreen Component
  *
- * Premium welcome screen shown when no conversation is active.
- * Features suggested prompts and a modern, inviting design.
+ * Clean welcome screen with proper text layout.
+ * Simple structure to ensure text displays horizontally.
  */
 
 'use client';
@@ -37,72 +37,51 @@ const SUGGESTED_PROMPTS = [
 ];
 
 /**
- * WelcomeScreen component with suggested prompts
+ * WelcomeScreen component - simple structure for proper text rendering
  */
 export function WelcomeScreen({ onPromptClick }: WelcomeScreenProps) {
   return (
-    <div className="flex-1 flex items-center justify-center p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-3xl w-full"
-      >
-        {/* Header */}
+    <div className="flex items-center justify-center p-6 w-full h-full">
+      <div className="max-w-3xl w-full mx-auto">
+        {/* Header - Simple structure, no motion wrapper on text container */}
         <div className="text-center mb-12">
           <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-6"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="mb-6 inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[var(--primary-accent)] to-[var(--primary-accent-end)] shadow-lg"
           >
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[var(--primary-accent)] to-[var(--primary-accent-end)] shadow-lg">
-              <svg
-                className="w-10 h-10 text-white"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            </div>
+            <svg
+              className="w-10 h-10 text-white"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-4xl font-bold text-[var(--text-primary)] mb-3"
-          >
+          {/* Text elements - no motion wrappers, should display normally */}
+          <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-3">
             How can I help you today?
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-lg text-[var(--text-secondary)]"
-          >
+          <p className="text-lg text-[var(--text-secondary)]">
             Start a conversation or choose a suggestion below
-          </motion.p>
+          </p>
         </div>
 
         {/* Suggested Prompts Grid */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {SUGGESTED_PROMPTS.map((suggestion, index) => (
             <motion.button
               key={suggestion.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+              transition={{ duration: 0.3, delay: 0.1 + index * 0.1 }}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onPromptClick(suggestion.prompt)}
@@ -137,15 +116,10 @@ export function WelcomeScreen({ onPromptClick }: WelcomeScreenProps) {
               </div>
             </motion.button>
           ))}
-        </motion.div>
+        </div>
 
         {/* Footer hint */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.9 }}
-          className="mt-8 text-center"
-        >
+        <div className="mt-8 text-center">
           <p className="text-sm text-[var(--text-secondary)]">
             Press{' '}
             <kbd className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)] bg-[var(--soft-dark-bg-secondary)] border border-[var(--glass-border)] rounded">
@@ -157,8 +131,8 @@ export function WelcomeScreen({ onPromptClick }: WelcomeScreenProps) {
             </kbd>{' '}
             for a new chat
           </p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,8 @@
 /**
  * ChatInterface Component
  *
- * Premium full-page chat interface with glassmorphism and smooth animations.
- * Features collapsible sidebar, welcome screen, and modern design.
- * Responsive design with mobile-first approach.
+ * Clean grid-based chat interface with proper layout.
+ * Uses CSS Grid for desktop layout, overlay sidebar for mobile.
  */
 
 'use client';
@@ -17,11 +16,10 @@ import { useChat } from '@/lib/hooks/useChat';
 import { useConversations } from '@/lib/hooks/useConversations';
 
 /**
- * ChatInterface component - premium chat container
+ * ChatInterface component - grid-based layout
  */
 export function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isLargeScreen, setIsLargeScreen] = useState(false);
 
   const {
     conversations,
@@ -42,21 +40,9 @@ export function ChatInterface() {
     retry,
   } = useChat(activeConversationId);
 
-  // Handle screen size changes
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsLargeScreen(window.innerWidth >= 1024);
-    };
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + K for new chat
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         handleNewChat();
@@ -67,19 +53,16 @@ export function ChatInterface() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Handle new chat creation
   const handleNewChat = useCallback(() => {
     createNewConversation();
     setIsSidebarOpen(false);
   }, [createNewConversation]);
 
-  // Handle conversation selection
   const handleSelectConversation = useCallback((id: number) => {
     selectConversation(id);
     setIsSidebarOpen(false);
   }, [selectConversation]);
 
-  // Handle message send with conversation refresh
   const handleSendMessage = useCallback(async (content: string) => {
     const result = await sendMessage(content);
     if (result) {
@@ -88,7 +71,7 @@ export function ChatInterface() {
   }, [sendMessage, refreshConversations]);
 
   return (
-    <div className="flex h-screen w-full bg-[var(--soft-dark-bg)] overflow-hidden">
+    <div className="grid lg:grid-cols-[320px_1fr] h-screen w-full bg-[var(--soft-dark-bg)] overflow-hidden">
       {/* Mobile menu button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
@@ -114,41 +97,46 @@ export function ChatInterface() {
         </svg>
       </motion.button>
 
-      {/* Conversation Sidebar - Desktop: always visible, Mobile: overlay */}
-      <AnimatePresence>
-        {(isSidebarOpen || isLargeScreen) && (
-          <motion.div
-            initial={{ x: -320 }}
-            animate={{ x: 0 }}
-            exit={{ x: -320 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed lg:relative inset-y-0 left-0 z-40 lg:z-0"
-          >
-            <ConversationSidebar
-              activeId={activeConversationId}
-              onSelect={handleSelectConversation}
-              onNewChat={handleNewChat}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Desktop Sidebar - Grid handles width */}
+      <div className="hidden lg:block">
+        <ConversationSidebar
+          activeId={activeConversationId}
+          onSelect={handleSelectConversation}
+          onNewChat={handleNewChat}
+        />
+      </div>
 
-      {/* Overlay for mobile when sidebar is open */}
+      {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
-            onClick={() => setIsSidebarOpen(false)}
-            aria-hidden="true"
-          />
+          <>
+            <motion.div
+              initial={{ x: -320 }}
+              animate={{ x: 0 }}
+              exit={{ x: -320 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 z-40 w-80"
+            >
+              <ConversationSidebar
+                activeId={activeConversationId}
+                onSelect={handleSelectConversation}
+                onNewChat={handleNewChat}
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
+              onClick={() => setIsSidebarOpen(false)}
+              aria-hidden="true"
+            />
+          </>
         )}
       </AnimatePresence>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col w-full lg:w-auto min-w-0">
+      {/* Chat Area - Grid handles width automatically */}
+      <div className="flex flex-col overflow-hidden">
         {/* Error banner */}
         <AnimatePresence>
           {error && (
