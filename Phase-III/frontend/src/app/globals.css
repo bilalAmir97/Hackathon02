@@ -57,6 +57,10 @@
   --motion-easing-exit: cubic-bezier(0.4, 0, 0.6, 1);
   --motion-easing-transition: cubic-bezier(0.4, 0, 0.2, 1);
 
+  /* Text colors */
+  --text-primary: #f0f0f0;
+  --text-secondary: #a0a0b0;
+
   /* Scan line specific tokens */
 }
 
@@ -1070,4 +1074,44 @@ html {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* Custom scrollbar for chat interface */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--glass-border);
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-accent);
+}
+
+/* Smooth scroll behavior */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

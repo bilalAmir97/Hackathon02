@@ -1,14 +1,15 @@
 /**
  * ChatInterface Component
  *
- * Main chat interface that composes ConversationSidebar, MessageList, and ChatInput.
- * Manages the active conversation and message flow.
- * Responsive design with collapsible sidebar on mobile.
+ * Premium full-page chat interface with glassmorphism and smooth animations.
+ * Features collapsible sidebar, welcome screen, and modern design.
+ * Responsive design with mobile-first approach.
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MessageList } from './MessageList';
 import { ChatInput } from './ChatInput';
 import { ConversationSidebar } from './ConversationSidebar';
@@ -16,10 +17,11 @@ import { useChat } from '@/lib/hooks/useChat';
 import { useConversations } from '@/lib/hooks/useConversations';
 
 /**
- * ChatInterface component - main chat container
+ * ChatInterface component - premium chat container
  */
 export function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
 
   const {
     conversations,
@@ -40,36 +42,63 @@ export function ChatInterface() {
     retry,
   } = useChat(activeConversationId);
 
+  // Handle screen size changes
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + K for new chat
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        handleNewChat();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Handle new chat creation
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     createNewConversation();
-    setIsSidebarOpen(false); // Close sidebar on mobile after creating new chat
-  };
+    setIsSidebarOpen(false);
+  }, [createNewConversation]);
 
   // Handle conversation selection
-  const handleSelectConversation = (id: number) => {
+  const handleSelectConversation = useCallback((id: number) => {
     selectConversation(id);
-    setIsSidebarOpen(false); // Close sidebar on mobile after selecting conversation
-  };
+    setIsSidebarOpen(false);
+  }, [selectConversation]);
 
   // Handle message send with conversation refresh
-  const handleSendMessage = async (content: string) => {
-    await sendMessage(content);
-    // Refresh conversations list after sending a message
-    // This ensures new conversations appear in the sidebar
-    await refreshConversations();
-  };
+  const handleSendMessage = useCallback(async (content: string) => {
+    const result = await sendMessage(content);
+    if (result) {
+      await refreshConversations();
+    }
+  }, [sendMessage, refreshConversations]);
 
   return (
-    <div className="flex h-full relative">
+    <div className="flex h-screen w-full bg-[var(--soft-dark-bg)] overflow-hidden">
       {/* Mobile menu button */}
-      <button
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl shadow-lg border border-[var(--glass-border)] hover:border-[var(--primary-accent)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--primary-accent)] transition-all"
         aria-label="Toggle conversation list"
       >
         <svg
-          className="h-6 w-6 text-gray-700"
+          className="h-5 w-5 text-[var(--text-primary)]"
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -83,75 +112,96 @@ export function ChatInterface() {
             <path d="M4 6h16M4 12h16M4 18h16" />
           )}
         </svg>
-      </button>
+      </motion.button>
 
       {/* Conversation Sidebar - Desktop: always visible, Mobile: overlay */}
-      <div
-        className={`
-          fixed lg:relative inset-y-0 left-0 z-40
-          transform transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
-      >
-        <ConversationSidebar
-          activeId={activeConversationId}
-          onSelect={handleSelectConversation}
-          onNewChat={handleNewChat}
-        />
-      </div>
+      <AnimatePresence>
+        {(isSidebarOpen || isLargeScreen) && (
+          <motion.div
+            initial={{ x: -320 }}
+            animate={{ x: 0 }}
+            exit={{ x: -320 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed lg:relative inset-y-0 left-0 z-40 lg:z-0"
+          >
+            <ConversationSidebar
+              activeId={activeConversationId}
+              onSelect={handleSelectConversation}
+              onNewChat={handleNewChat}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Overlay for mobile when sidebar is open */}
-      {isSidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={() => setIsSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col w-full lg:w-auto">
+      <div className="flex-1 flex flex-col w-full lg:w-auto min-w-0">
         {/* Error banner */}
-        {error && (
-          <div className="bg-red-50 border-b border-red-200 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <svg
-                  className="h-5 w-5 text-red-600 flex-shrink-0"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm text-red-800">{error}</p>
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ y: -100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -100, opacity: 0 }}
+              className="bg-red-500/10 border-b border-red-500/20 backdrop-blur-xl px-4 md:px-6 py-3"
+            >
+              <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <svg
+                    className="h-5 w-5 text-red-400 flex-shrink-0"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-red-300 truncate">{error}</p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={retry}
+                    className="text-sm text-red-300 hover:text-red-200 font-medium px-3 py-1 rounded-lg hover:bg-red-500/10 transition-colors"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    onClick={clearError}
+                    className="text-sm text-red-300 hover:text-red-200 p-1 rounded-lg hover:bg-red-500/10 transition-colors"
+                    aria-label="Dismiss error"
+                  >
+                    <svg className="w-4 h-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                      <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center space-x-2 flex-shrink-0">
-                <button
-                  onClick={retry}
-                  className="text-sm text-red-600 hover:text-red-800 font-medium"
-                >
-                  Retry
-                </button>
-                <button
-                  onClick={clearError}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Message list */}
         <MessageList
           messages={messages}
           streamingMessage={streamingMessage}
           isStreaming={isStreaming}
+          onSendMessage={handleSendMessage}
+          onRegenerate={retry}
         />
 
         {/* Chat input */}

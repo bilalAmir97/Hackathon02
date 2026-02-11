@@ -70,24 +70,24 @@ export function ToolCallIndicator({ toolCall }: ToolCallIndicatorProps) {
   };
 
   return (
-    <div className={`my-2 rounded-lg border p-3 ${statusDisplay.color}`}>
+    <div className={`my-2 rounded-xl border p-3 backdrop-blur-xl ${statusDisplay.color}`}>
       <div className="flex items-start space-x-2">
         <div className="mt-0.5">{statusDisplay.icon}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium">
+            <span className="text-sm font-semibold">
               {formatToolName(tool_name)}
             </span>
-            <span className="text-xs opacity-75">{statusDisplay.label}</span>
+            <span className="text-xs opacity-75 font-medium">{statusDisplay.label}</span>
           </div>
 
           {/* Show input parameters for pending/success */}
           {(execution_status === 'pending' || execution_status === 'success') && input_parameters && Object.keys(input_parameters).length > 0 && (
-            <div className="mt-1 text-xs opacity-75">
+            <div className="mt-2 text-xs opacity-80 space-y-1">
               {Object.entries(input_parameters).map(([key, value]) => (
-                <div key={key}>
-                  <span className="font-medium">{key}:</span>{' '}
-                  {typeof value === 'string' ? value : JSON.stringify(value)}
+                <div key={key} className="flex gap-1">
+                  <span className="font-semibold">{key}:</span>{' '}
+                  <span className="truncate">{typeof value === 'string' ? value : JSON.stringify(value)}</span>
                 </div>
               ))}
             </div>
@@ -96,8 +96,8 @@ export function ToolCallIndicator({ toolCall }: ToolCallIndicatorProps) {
           {/* Show output result for success */}
           {execution_status === 'success' && output_result && (
             <div className="mt-2 text-xs">
-              <div className="font-medium mb-1">Result:</div>
-              <div className="bg-white bg-opacity-50 rounded p-2 font-mono">
+              <div className="font-semibold mb-1">Result:</div>
+              <div className="bg-black/10 rounded-lg p-2 font-mono text-xs overflow-x-auto">
                 {typeof output_result === 'string'
                   ? output_result
                   : JSON.stringify(output_result, null, 2)}
@@ -107,8 +107,8 @@ export function ToolCallIndicator({ toolCall }: ToolCallIndicatorProps) {
 
           {/* Show error message for errors */}
           {execution_status === 'error' && error_message && (
-            <div className="mt-1 text-xs">
-              <span className="font-medium">Error:</span> {error_message}
+            <div className="mt-2 text-xs">
+              <span className="font-semibold">Error:</span> {error_message}
             </div>
           )}
         </div>

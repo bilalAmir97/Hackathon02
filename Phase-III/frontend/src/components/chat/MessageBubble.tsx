@@ -1,68 +1,94 @@
 /**
  * MessageBubble Component
  *
- * Displays a single message in the chat interface with role-based styling.
+ * Premium message bubble with glassmorphism, hover actions, and smooth animations.
  * Supports user and assistant messages with timestamps and tool call transparency.
  * Optimized with React.memo to prevent unnecessary re-renders.
  */
 
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Message } from '@/types/chat';
 import { ToolCallIndicator } from './ToolCallIndicator';
+import { MessageActions } from './MessageActions';
 
 interface MessageBubbleProps {
   message: Message;
   isStreaming?: boolean;
+  onRegenerate?: () => void;
 }
 
 /**
  * MessageBubble component for displaying chat messages
  */
-export const MessageBubble = memo(function MessageBubble({ message, isStreaming = false }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({
+  message,
+  isStreaming = false,
+  onRegenerate
+}: MessageBubbleProps) {
   const isUser = message.role === 'user';
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div
-      className={`flex w-full mb-4 ${
-        isUser ? 'justify-end' : 'justify-start'
-      }`}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={`flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}
       role="article"
       aria-label={`${isUser ? 'Your' : 'AI'} message`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className={`max-w-[80%] rounded-lg px-4 py-3 ${
-          isUser
-            ? 'bg-blue-600 text-white'
-            : 'bg-white text-gray-900 border border-gray-200'
-        } ${isStreaming ? 'motion-safe:animate-pulse' : ''}`}
-      >
-        <div className="text-sm leading-relaxed whitespace-pre-wrap">
-          {message.content}
+      <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%] md:max-w-[75%]`}>
+        {/* Message bubble */}
+        <div
+          className={`relative rounded-2xl px-5 py-3.5 ${
+            isUser
+              ? 'bg-gradient-to-br from-[var(--primary-accent)] to-[var(--primary-accent-end)] text-white shadow-lg'
+              : 'bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)] text-[var(--text-primary)] shadow-md'
+          } ${isStreaming ? 'motion-safe:animate-pulse' : ''}`}
+        >
+          <div className="text-[15px] leading-relaxed whitespace-pre-wrap">
+            {message.content}
+          </div>
+
+          {/* Tool calls for assistant messages */}
+          {!isUser && message.tool_calls && message.tool_calls.length > 0 && (
+            <div className="mt-3 space-y-2" role="region" aria-label="Tool executions">
+              {message.tool_calls.map((toolCall, index) => (
+                <ToolCallIndicator key={`${toolCall.tool_name}-${index}`} toolCall={toolCall} />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Tool calls for assistant messages */}
-        {!isUser && message.tool_calls && message.tool_calls.length > 0 && (
-          <div className="mt-3 space-y-2" role="region" aria-label="Tool executions">
-            {message.tool_calls.map((toolCall, index) => (
-              <ToolCallIndicator key={`${toolCall.tool_name}-${index}`} toolCall={toolCall} />
-            ))}
-          </div>
-        )}
-
-        {message.created_at && (
-          <div
-            className={`text-xs mt-2 ${
-              isUser ? 'text-blue-100' : 'text-gray-500'
-            }`}
-          >
-            <time dateTime={message.created_at}>
-              {new Date(message.created_at).toLocaleTimeString()}
+        {/* Timestamp and actions */}
+        <div className={`flex items-center gap-3 mt-2 px-1 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+          {message.created_at && (
+            <time
+              dateTime={message.created_at}
+              className="text-xs text-[var(--text-secondary)]"
+            >
+              {new Date(message.created_at).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
             </time>
-          </div>
-        )}
+          )}
+
+          {/* Action buttons on hover */}
+          {isHovered && !isStreaming && (
+            <MessageActions
+              content={message.content}
+              isAssistant={!isUser}
+              onRegenerate={!isUser ? onRegenerate : undefined}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 });
