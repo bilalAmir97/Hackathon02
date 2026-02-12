@@ -1,21 +1,23 @@
-# Phase II: Todo Full-Stack Web Application with Authentication
+# Phase III: AI-Powered Todo Application with Conversational Interface
 
-**Status**: ✅ Complete (User Stories 1-4 implemented)
-**Last Updated**: 2026-01-14
-**Branch**: `001-auth-security-integration`
+**Status**: ✅ Complete (AI Chat Integration Implemented)
+**Last Updated**: 2026-02-11
+**Branch**: `001-todo`
 
 ## Overview
 
-Phase II extends the Phase I console application into a full-stack web application with secure user authentication, JWT-based authorization, and user-scoped data isolation. Users can register, login, and manage their personal todo lists through a modern web interface.
+Phase III extends Phase II by adding an AI-powered conversational interface for task management. Users can interact with an intelligent assistant through natural language to create, update, complete, and delete tasks without navigating through traditional UI forms.
 
 ### Key Features
 
-- ✅ **User Authentication**: Secure registration and login with JWT tokens
-- ✅ **User Isolation**: Each user can only access their own data
-- ✅ **Token Security**: 30-minute token expiration with comprehensive validation
-- ✅ **RESTful API**: FastAPI backend with OpenAPI documentation
-- ✅ **Modern Frontend**: Next.js 16+ with Better Auth integration
-- ✅ **Production-Ready**: Structured logging, performance monitoring, CORS configuration
+- ✅ **AI Chat Assistant**: Natural language task management through conversational interface
+- ✅ **MCP Tools Integration**: Model Context Protocol tools for structured task operations
+- ✅ **Real-time Streaming**: Token-by-token response streaming for better UX
+- ✅ **Tool Call Transparency**: Users see exactly what actions the AI is performing
+- ✅ **Conversation Persistence**: Chat history stored and retrieved across sessions
+- ✅ **Multi-Provider Support**: Groq (primary) and OpenAI (fallback) for reliability
+- ✅ **User Authentication**: Inherited secure JWT-based authentication from Phase II
+- ✅ **Chat Widget**: Integrated floating chat widget accessible from dashboard
 
 ## Architecture
 
@@ -25,192 +27,186 @@ Phase II extends the Phase I console application into a full-stack web applicati
 - **Framework**: FastAPI (Python 3.13+)
 - **Database**: Neon Serverless PostgreSQL
 - **ORM**: SQLModel with Alembic migrations
+- **AI Integration**: OpenAI Agents SDK
+- **LLM Providers**:
+  - Primary: Groq (openai/gpt-oss-20b)
+  - Fallback: OpenAI (gpt-4o-mini)
 - **Authentication**: PyJWT for token verification
 - **Testing**: pytest with async support
 
 **Frontend**:
-- **Framework**: Next.js 16.0.10 (App Router)
+- **Framework**: Next.js 15.5.12 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **Authentication**: Better Auth with JWT plugin
+- **UI Components**: Custom Soft Dark theme with glassmorphism
 
-**Security**:
-- **Token Format**: JWT (JSON Web Token) with HS256 signing
-- **Token Lifetime**: 30 minutes
-- **Password Hashing**: Bcrypt with automatic salt generation
-- **User Isolation**: Enforced at every API endpoint
+**AI Agent Architecture**:
+- **Agent Factory**: Creates and configures AI agents with MCP tools
+- **Runner Factory**: Manages OpenAI ChatCompletions with retry logic
+- **MCP Adapter**: Converts MCP tools to OpenAI function calling format
+- **Agent Orchestration**: Coordinates agent execution, tool calls, and persistence
+- **History Manager**: Manages conversation history with truncation
 
 ### Project Structure
 
 ```
-Phase-II/
+Phase-III/
 ├── backend/
 │   ├── src/
+│   │   ├── agent/
+│   │   │   ├── agent_factory.py      # AI agent creation
+│   │   │   ├── runner_factory.py     # OpenAI client management
+│   │   │   ├── mcp_adapter.py        # MCP tool integration
+│   │   │   ├── instructions.py       # System prompt
+│   │   │   ├── history_manager.py    # Conversation truncation
+│   │   │   └── guardrails.py         # Confirmation management
+│   │   ├── mcp/
+│   │   │   └── tools/
+│   │   │       ├── add_task.py       # Create task tool
+│   │   │       ├── list_tasks.py     # List tasks tool
+│   │   │       ├── update_task.py    # Update task tool
+│   │   │       ├── complete_task.py  # Complete task tool
+│   │   │       └── delete_task.py    # Delete task tool
+│   │   ├── use_cases/
+│   │   │   └── agent_orchestration.py # Agent workflow coordination
 │   │   ├── api/
 │   │   │   └── routes/
-│   │   │       ├── auth.py          # Authentication endpoints
-│   │   │       ├── tasks.py         # Protected task endpoints
-│   │   │       └── health.py        # Health check
-│   │   ├── domain/
-│   │   │   └── models.py            # SQLModel database models
-│   │   ├── middleware/
-│   │   │   └── jwt_auth.py          # JWT verification middleware
-│   │   ├── schemas/
-│   │   │   └── auth.py              # Pydantic request/response schemas
-│   │   ├── use_cases/
-│   │   │   └── auth_operations.py   # Authentication business logic
-│   │   ├── dependencies.py          # FastAPI dependencies
-│   │   ├── database.py              # Database connection
-│   │   ├── config.py                # Configuration management
-│   │   └── main.py                  # FastAPI application
-│   ├── tests/
-│   │   ├── contract/                # API contract tests
-│   │   ├── integration/             # Integration tests
-│   │   └── unit/                    # Unit tests
-│   ├── alembic/                     # Database migrations
-│   ├── .env                         # Environment variables
-│   └── pyproject.toml               # Python dependencies
+│   │   │       ├── chat.py           # Chat endpoint
+│   │   │       ├── chat_stream.py    # Streaming chat endpoint
+│   │   │       └── conversations.py  # Conversation management
+│   │   └── domain/
+│   │       └── models.py             # Database models (+ Conversation, Message)
+│   └── tests/
+│       └── integration/              # E2E tests
 │
 └── frontend/
     ├── src/
     │   ├── app/
-    │   │   ├── (auth)/
-    │   │   │   ├── register/        # Registration page
-    │   │   │   └── login/           # Login page
-    │   │   └── dashboard/           # Protected dashboard
-    │   └── lib/
-    │       ├── auth.ts              # Better Auth configuration
-    │       └── api-client.ts        # API client with JWT injection
-    ├── .env.local                   # Frontend environment variables
-    └── package.json                 # Node dependencies
+    │   │   ├── dashboard/            # Main dashboard with chat widget
+    │   │   ├── login/                # Login page
+    │   │   └── register/             # Registration page
+    │   ├── components/
+    │   │   ├── chat/
+    │   │   │   ├── ChatWidget.tsx    # Floating chat widget
+    │   │   │   ├── ChatInterface.tsx # Chat UI
+    │   │   │   ├── MessageList.tsx   # Message display
+    │   │   │   ├── ChatInput.tsx     # Message input
+    │   │   │   └── ToolCallIndicator.tsx # Tool execution display
+    │   │   ├── navigation/
+    │   │   │   ├── Sidebar.tsx       # Main navigation
+    │   │   │   └── TopNavigation.tsx # Top bar
+    │   │   └── tasks/
+    │   │       └── TaskCard.tsx      # Task display component
+    │   └── hooks/
+    │       ├── useAuth.tsx           # Authentication hook
+    │       └── useChat.tsx           # Chat management hook
+    └── package.json
 ```
 
-## Authentication Flow
+## AI Chat Features
 
-### 1. User Registration
+### Conversational Task Management
+
+Users can manage tasks through natural language:
+
+**Examples**:
+- "Add a task to buy groceries"
+- "Mark the medicine task as complete"
+- "Delete the task named bro"
+- "Show me all my pending tasks"
+- "Update the grocery task description to include milk and eggs"
+
+### MCP Tools
+
+The AI assistant has access to 5 MCP tools:
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `add_task` | Create a new task | `title`, `description` (optional) |
+| `list_tasks` | List user's tasks | `status` (optional: pending/completed/all) |
+| `update_task` | Update existing task | `task_id`, `title`, `description` |
+| `complete_task` | Toggle task completion | `task_id` |
+| `delete_task` | Delete a task | `task_id` |
+
+### Tool Call Transparency
+
+Every tool execution is displayed to the user with:
+- Tool name
+- Input parameters
+- Output result
+- Execution status (success/error)
+- Timestamp
+
+### Conversation Flow
 
 ```
-User → Frontend → POST /api/auth/register → Backend
-                                           ↓
-                                    Hash password (bcrypt)
-                                           ↓
-                                    Create user in database
-                                           ↓
-                                    Generate JWT token (30min)
-                                           ↓
-Frontend ← { token, user } ← Backend
-```
-
-### 2. User Login
-
-```
-User → Frontend → POST /api/auth/login → Backend
-                                        ↓
-                                 Verify credentials
-                                        ↓
-                                 Check account status
-                                        ↓
-                                 Generate JWT token
-                                        ↓
-Frontend ← { token, user } ← Backend
-```
-
-### 3. Protected API Access
-
-```
-User → Frontend → GET /api/{user_id}/tasks → Backend
-                  (Authorization: Bearer <token>)
-                                              ↓
-                                       Verify JWT signature
-                                              ↓
-                                       Check token expiration
-                                              ↓
-                                       Validate user exists
-                                              ↓
-                                       Check account status
-                                              ↓
-                                       Verify user_id match
-                                              ↓
-Frontend ← { tasks: [...] } ← Backend
+User: "Add a task to buy groceries"
+  ↓
+AI Agent: Processes intent
+  ↓
+Tool Call: add_task(title="buy groceries")
+  ↓
+Database: Creates task
+  ↓
+AI Response: "I've created a task for you: 'buy groceries'"
+  ↓
+User sees: Message + Tool execution details
 ```
 
 ## API Endpoints
 
-### Authentication Endpoints (Public)
+### Chat Endpoints (Protected)
 
-| Method | Endpoint | Description | Request Body | Response |
-|--------|----------|-------------|--------------|----------|
-| POST | `/api/auth/register` | Register new user | `{ email, password }` | `{ token, user }` |
-| POST | `/api/auth/login` | Login existing user | `{ email, password }` | `{ token, user }` |
-
-### Task Endpoints (Protected)
-
-All task endpoints require `Authorization: Bearer <token>` header.
+All chat endpoints require `Authorization: Bearer <token>` header.
 
 | Method | Endpoint | Description | Response |
 |--------|----------|-------------|----------|
-| GET | `/api/{user_id}/tasks` | List user's tasks | `[{ id, title, ... }]` |
-| POST | `/api/{user_id}/tasks` | Create new task | `{ id, title, ... }` |
-| GET | `/api/{user_id}/tasks/{id}` | Get task details | `{ id, title, ... }` |
-| PUT | `/api/{user_id}/tasks/{id}` | Update task | `{ id, title, ... }` |
-| DELETE | `/api/{user_id}/tasks/{id}` | Delete task | `{ message }` |
-| PATCH | `/api/{user_id}/tasks/{id}/complete` | Toggle completion | `{ id, completed }` |
+| POST | `/api/{user_id}/chat` | Send message to AI | `{ conversation_id, response, tool_calls }` |
+| POST | `/api/{user_id}/chat/stream` | Stream AI response | Server-Sent Events |
+| GET | `/api/{user_id}/conversations` | List conversations | `[{ id, created_at, ... }]` |
+| GET | `/api/{user_id}/conversations/{id}/messages` | Get conversation history | `[{ role, content, ... }]` |
+| DELETE | `/api/{user_id}/conversations/{id}` | Delete conversation | `{ message }` |
 
-### Health Check (Public)
+### Authentication & Task Endpoints
 
-| Method | Endpoint | Description | Response |
-|--------|----------|-------------|----------|
-| GET | `/api/health` | Health check | `{ status, timestamp }` |
-
-## Security Features
-
-### JWT Token Validation (6-Layer Security)
-
-1. **Signature Verification**: Validates token hasn't been tampered with
-2. **Expiration Check**: Rejects tokens older than 30 minutes
-3. **Claims Extraction**: Validates required claims (user_id, email, iat)
-4. **User Existence**: Verifies user exists in database
-5. **Account Status**: Only ACTIVE accounts can authenticate
-6. **Password Change Validation**: Tokens issued before password change are rejected
-
-### User Isolation Enforcement
-
-- Every protected endpoint validates `user_id` in URL matches `user_id` in JWT token
-- Attempting to access another user's resources returns `401 Unauthorized`
-- No data leakage between users
-
-### Error Handling
-
-All authentication failures return consistent `401 Unauthorized` responses:
-
-- Missing Authorization header → `"Missing authentication credentials"`
-- Invalid Bearer format → `"Invalid Authorization header format"`
-- Invalid signature → `"Invalid token signature or format"`
-- Expired token → `"Token has expired. Please re-authenticate."`
-- User not found → `"User not found"`
-- Account disabled → `"Account is disabled: authentication denied"`
-- User ID mismatch → `"Cannot access another user's resources"`
+See Phase II documentation for authentication and task management endpoints.
 
 ## Setup Instructions
 
-### Quick Start
-
-For detailed setup instructions, see: [`specs/001-auth-security-integration/quickstart.md`](../specs/001-auth-security-integration/quickstart.md)
-
 ### Prerequisites
 
-- Node.js 18.x+ (for Next.js 16)
+- Node.js 18.x+ (for Next.js 15)
 - Python 3.13+ (for FastAPI)
 - UV package manager
 - Neon PostgreSQL account
+- Groq API key (primary LLM provider)
+- OpenAI API key (optional fallback)
 
 ### Environment Variables
 
 **Backend (`.env`)**:
 ```bash
+# Database
 DATABASE_URL=postgresql+asyncpg://user:password@host/database
+
+# Authentication
 BETTER_AUTH_SECRET=<32+ character secret>
 FRONTEND_URL=http://localhost:3000
+
+# AI Providers
+GROQ_API_KEY=<your-groq-api-key>
+GROQ_MODEL=openai/gpt-oss-20b
+OPENAI_API_KEY=<your-openai-api-key>  # Optional fallback
+OPENAI_FALLBACK_MODEL=gpt-4o-mini
+OPENAI_FALLBACK_ENABLED=true
+
+# Agent Configuration
+AGENT_TEMPERATURE=0.7
+AGENT_MAX_TOKENS=1000
+AGENT_MAX_HISTORY_MESSAGES=20
+
+# CORS
 CORS_ALLOW_CREDENTIALS=true
 CORS_MAX_AGE=3600
 ```
@@ -220,28 +216,26 @@ CORS_MAX_AGE=3600
 BETTER_AUTH_SECRET=<same as backend>
 BETTER_AUTH_URL=http://localhost:3000
 DATABASE_URL=<same as backend>
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8001
 ```
-
-**IMPORTANT**: Use the SAME `BETTER_AUTH_SECRET` for both frontend and backend!
 
 ### Running Locally
 
 **Terminal 1 - Backend**:
 ```bash
-cd Phase-II/backend
-uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+cd Phase-III/backend
+uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8001
 ```
 
 **Terminal 2 - Frontend**:
 ```bash
-cd Phase-II/frontend
+cd Phase-III/frontend
 npm run dev
 ```
 
 **Access**:
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
+- Backend API: http://localhost:8001
+- API Documentation: http://localhost:8001/docs
 - Frontend: http://localhost:3000
 
 ## Testing
@@ -249,193 +243,134 @@ npm run dev
 ### Backend Tests
 
 ```bash
-cd Phase-II/backend
+cd Phase-III/backend
 
 # Run all tests
 uv run pytest
 
-# Run specific test categories
-uv run pytest tests/unit/          # Unit tests (48 tests)
-uv run pytest tests/integration/   # Integration tests (20+ tests)
-uv run pytest tests/contract/      # Contract tests (11 tests)
+# Run integration tests
+uv run pytest tests/integration/ -v
 
 # Run with coverage
 uv run pytest --cov=src --cov-report=html
-
-# View coverage report
-open htmlcov/index.html
 ```
-
-### Test Coverage
-
-| Test Type | Count | Status | Coverage |
-|-----------|-------|--------|----------|
-| Contract Tests | 11 | ✅ 100% Pass | API schema compliance |
-| Unit Tests | 48 | ✅ 100% Pass | JWT verification, auth logic |
-| Integration Tests | 20+ | ✅ 100% Pass | End-to-end flows |
-| **Total** | **79+** | **✅ 100% Pass** | **Comprehensive** |
 
 ### Manual Testing
 
-**Test Authentication Flow**:
+**Test AI Chat Flow**:
 ```bash
-# 1. Register user
-curl -X POST http://localhost:8000/api/auth/register \
+# 1. Register and login to get token
+TOKEN="<your-jwt-token>"
+USER_ID="<your-user-id>"
+
+# 2. Send chat message
+curl -X POST http://localhost:8001/api/${USER_ID}/chat \
+  -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"SecurePass123!"}'
+  -d '{"message": "Add a task to buy groceries"}'
 
-# 2. Login (copy token from response)
-curl -X POST http://localhost:8000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"SecurePass123!"}'
+# 3. List conversations
+curl http://localhost:8001/api/${USER_ID}/conversations \
+  -H "Authorization: Bearer ${TOKEN}"
 
-# 3. Access protected endpoint
-curl http://localhost:8000/api/{user_id}/tasks \
-  -H "Authorization: Bearer <token>"
+# 4. Get conversation messages
+curl http://localhost:8001/api/${USER_ID}/conversations/1/messages \
+  -H "Authorization: Bearer ${TOKEN}"
 ```
-
-## Monitoring & Observability
-
-### Structured Logging
-
-All authentication events are logged with structured format for easy parsing:
-
-**Success Event**:
-```
-INFO: timestamp=2026-01-14T10:30:45+00:00 | event_type=authentication_success | user_id=... | email=... | total_duration_ms=15.67
-```
-
-**Failure Event**:
-```
-WARNING: timestamp=2026-01-14T10:31:20+00:00 | event_type=authentication_failed | reason=user_not_found | user_id=... | email=...
-```
-
-**Security Event**:
-```
-ERROR: timestamp=2026-01-14T10:32:15+00:00 | event_type=invalid_token_signature | reason=invalid_signature_or_malformed
-```
-
-### Performance Monitoring
-
-- **JWT Decode Time**: Typical 1-5ms
-- **Database Lookup Time**: Typical 5-20ms
-- **Total Authentication Time**: Typical 10-30ms
-- **Slow Authentication Alert**: >100ms threshold
-
-See [`backend/LOGGING_IMPLEMENTATION_SUMMARY.md`](backend/LOGGING_IMPLEMENTATION_SUMMARY.md) for detailed logging documentation.
 
 ## Deployment
 
-### Backend Deployment
+### Production Deployment
 
-**Recommended**: Railway, Render, or Fly.io
+**Frontend**: Deployed on Netlify
+- Production URL: https://rainbow-froyo-cda32b.netlify.app
+- Auto-deploys from `001-todo` branch
+
+**Backend**: Requires deployment to Railway/Render/Fly.io
 
 **Environment Variables** (Production):
 ```bash
+# Backend
 DATABASE_URL=<neon-production-url>
 BETTER_AUTH_SECRET=<strong-secret-32+chars>
-FRONTEND_URL=https://your-app.vercel.app
+FRONTEND_URL=https://rainbow-froyo-cda32b.netlify.app
+GROQ_API_KEY=<production-groq-key>
+OPENAI_API_KEY=<production-openai-key>
 APP_ENV=production
 LOG_LEVEL=INFO
-```
 
-### Frontend Deployment
-
-**Recommended**: Vercel (optimized for Next.js)
-
-**Environment Variables** (Production):
-```bash
+# Frontend
 BETTER_AUTH_SECRET=<same-as-backend>
-BETTER_AUTH_URL=https://your-app.vercel.app
+BETTER_AUTH_URL=https://rainbow-froyo-cda32b.netlify.app
 DATABASE_URL=<neon-production-url>
-NEXT_PUBLIC_API_URL=https://your-backend.railway.app
+NEXT_PUBLIC_API_URL=<backend-production-url>
 ```
 
 ### Database Migrations
 
 ```bash
-# Run migrations on production database
-cd Phase-II/backend
+cd Phase-III/backend
 DATABASE_URL=<production-url> uv run alembic upgrade head
 ```
+
+## Recent Changes
+
+### 2026-02-11
+- ✅ Removed AI Chat navigation from sidebar (chat accessible via widget only)
+- ✅ Removed non-functional search bar from top navigation
+- ✅ Restored to working state after glassmorphism UI issues
+- ✅ Deployed to production
+
+### Key Implementation Details
+- AI chat operations (add, update, delete, complete tasks) fully functional
+- Chat widget integrated into dashboard with floating UI
+- Conversation history persisted across sessions
+- Tool call transparency shows all AI actions to users
 
 ## Troubleshooting
 
 ### Common Issues
 
-**Issue**: "Invalid token" errors despite valid token
-**Solution**: Verify `BETTER_AUTH_SECRET` matches between frontend and backend
+**Issue**: AI responses are empty or incomplete
+**Solution**: Check that `GROQ_API_KEY` is valid and has sufficient credits
 
-**Issue**: CORS errors in browser console
-**Solution**: Update `FRONTEND_URL` in backend `.env` to match frontend origin
+**Issue**: Tool calls fail with "User not found"
+**Solution**: Ensure JWT token is valid and user_id matches token claims
 
-**Issue**: "User not found" after registration
-**Solution**: Run database migrations: `uv run alembic upgrade head`
+**Issue**: Chat widget not appearing
+**Solution**: Verify you're logged in and on the dashboard page
 
-**Issue**: Token expires too quickly
-**Solution**: Token lifetime is 30 minutes by design. Implement refresh tokens for longer sessions.
+**Issue**: "Rate limit exceeded" errors
+**Solution**: Fallback to OpenAI is automatic if `OPENAI_FALLBACK_ENABLED=true`
 
-**Issue**: 422 errors instead of 401 for missing auth
-**Solution**: This was fixed in User Story 4. Ensure you're on latest code.
+**Issue**: Conversation history not loading
+**Solution**: Run database migrations to ensure `conversations` and `messages` tables exist
 
 ## Development Workflow
 
 ### Making Changes
 
-1. **Backend changes**: Server auto-reloads with `--reload` flag
-2. **Frontend changes**: Next.js Fast Refresh handles updates
-3. **Database schema changes**: Create Alembic migration
-4. **Environment variables**: Restart both servers
+1. **Backend AI changes**: Modify files in `src/agent/` or `src/mcp/tools/`
+2. **Frontend chat UI**: Modify files in `src/components/chat/`
+3. **System prompt**: Edit `src/agent/instructions.py`
+4. **Add new MCP tool**: Create tool in `src/mcp/tools/` and register in `mcp_adapter.py`
 
-### Running Tests
+### Testing AI Behavior
 
 ```bash
-# Run tests after changes
-cd Phase-II/backend
-uv run pytest
-
-# Run specific test file
-uv run pytest tests/integration/test_auth.py -v
-
-# Run tests matching pattern
-uv run pytest -k "test_jwt" -v
+# Test with different prompts
+curl -X POST http://localhost:8001/api/${USER_ID}/chat \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Your test prompt here"}'
 ```
-
-### Code Quality
-
-- **Linting**: Follow existing code patterns
-- **Type Hints**: Use Python type hints and TypeScript types
-- **Error Handling**: Return consistent error responses
-- **Security**: Never log passwords or full tokens
-- **Testing**: Write tests for new features
-
-## Implementation Status
-
-### Completed User Stories
-
-- ✅ **User Story 1**: User Registration and Login (T001-T031)
-- ✅ **User Story 2**: Protected API Access with User Isolation (T032-T055)
-- ✅ **User Story 3**: Token Security and Expiration Handling (T056-T066)
-- ✅ **User Story 4**: Missing or Invalid Token Handling (T067-T077)
-
-### Completed Polish Tasks
-
-- ✅ **T078-T079**: Structured logging and performance monitoring
-- ✅ **T080-T081**: API documentation and CORS configuration
-- ✅ **T082**: Quickstart validation
-- ✅ **T083**: README documentation (this file)
-- ⏳ **T084**: Full test suite verification (in progress)
-
-### Total Tasks Completed
-
-**77/84 tasks complete (91.7%)**
 
 ## Resources
 
-- **Quickstart Guide**: [`specs/001-auth-security-integration/quickstart.md`](../specs/001-auth-security-integration/quickstart.md)
-- **Logging Documentation**: [`backend/LOGGING_IMPLEMENTATION_SUMMARY.md`](backend/LOGGING_IMPLEMENTATION_SUMMARY.md)
-- **API Documentation**: http://localhost:8000/docs (when backend running)
-- **Better Auth Docs**: https://better-auth.com/docs
+- **API Documentation**: http://localhost:8001/docs (when backend running)
+- **OpenAI Agents SDK**: https://github.com/openai/openai-agents-sdk
+- **Groq Documentation**: https://console.groq.com/docs
+- **MCP Protocol**: https://modelcontextprotocol.io
 - **FastAPI Docs**: https://fastapi.tiangolo.com
 - **Next.js Docs**: https://nextjs.org/docs
 
@@ -443,11 +378,12 @@ uv run pytest -k "test_jwt" -v
 
 When adding new features:
 
-1. Follow TDD approach (write tests first)
-2. Update API documentation in `main.py`
-3. Add structured logging for new events
-4. Update this README with new endpoints/features
-5. Run full test suite before committing
+1. Follow existing code patterns and architecture
+2. Add MCP tools for new AI capabilities
+3. Update system instructions if needed
+4. Add integration tests for new flows
+5. Update this README with new features
+6. Test locally before deploying
 
 ## License
 
@@ -455,4 +391,4 @@ When adding new features:
 
 ---
 
-**Questions or Issues?** Check the troubleshooting section or review the quickstart guide.
+**Questions or Issues?** Check the troubleshooting section or review Phase II documentation for authentication setup.
