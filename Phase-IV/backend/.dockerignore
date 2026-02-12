@@ -1,0 +1,60 @@
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+dist
+build
+.eggs
+
+# Virtual environments
+.venv
+venv
+ENV
+env
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+.tox
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Logs
+*.log
+fastapi_server.log
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Tests
+tests
+
+# Phase-III (if exists in backend)
+Phase-III
+
+# Misc
+.ruff_cache

@@ -1,0 +1,21 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your Phase-IV Todo Application has been deployed to Kubernetes.
+
+To access your application:
+
+Frontend (NodePort):
+  Get Minikube IP: minikube ip
+  Access at: http://<minikube-ip>:30000
+
+Backend (Port Forward):
+  kubectl port-forward svc/{{ include "todo-chatbot.fullname" . }}-backend 8000:8000
+  Access at: http://localhost:8000
+
+To check the status:
+  kubectl get pods
+  kubectl get services
+
+To view logs:
+  Backend:  kubectl logs -l app.kubernetes.io/component=backend
+  Frontend: kubectl logs -l app.kubernetes.io/component=frontend

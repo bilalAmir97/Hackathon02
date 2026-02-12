@@ -1,0 +1,5 @@
+# Local secrets file - DO NOT COMMIT
+values-local.yaml
+
+# Helm package files
+*.tgz
