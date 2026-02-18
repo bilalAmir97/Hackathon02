@@ -39,6 +39,7 @@ Phase IV: Docker + Kubernetes Deployment
 **Status**: ✅ Complete
 **Branch**: `001-todo`
 **Documentation**: [Phase-II/README.md](Phase-II/README.md)
+**Live Demo**: [https://frontend-puce-chi-82.vercel.app/](https://frontend-puce-chi-82.vercel.app/)
 
 **Key Features**:
 - ✅ **User Authentication**: Secure registration and login with JWT tokens
