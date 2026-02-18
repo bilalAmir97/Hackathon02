@@ -37,7 +37,7 @@ Phase IV: Docker + Kubernetes Deployment
 
 ### Phase II: Full-Stack Web Application with Authentication
 **Status**: ✅ Complete
-**Branch**: `001-auth-security-integration`
+**Branch**: `001-todo`
 **Documentation**: [Phase-II/README.md](Phase-II/README.md)
 
 **Key Features**:
