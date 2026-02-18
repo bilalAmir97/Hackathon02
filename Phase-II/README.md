@@ -2,7 +2,7 @@
 
 **Status**: ✅ Complete (User Stories 1-4 implemented)
 **Last Updated**: 2026-01-14
-**Branch**: `001-auth-security-integration`
+**Branch**: `001-todo`
 
 ## Overview
 
